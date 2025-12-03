@@ -1,429 +1,545 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<title>Gypsy City Bottle Hunt</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<style>
-  body {
-    margin: 0;
-    background: #000;
-    overflow: hidden;
-    touch-action: none;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  }
-  #game {
-    width: 100vw;
-    height: 100vh;
-    display: block;
-    background: #20232a;
-  }
-  .hud {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    color: #fff;
-    font-size: 16px;
-    text-shadow: 0 0 4px #000;
-    z-index: 10;
-  }
-  .hud div { margin-bottom: 4px; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Gypsy Bottle Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      margin: 0;
+      background: #111;
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    #game {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #151827;
+      touch-action: none;
+    }
 
-  .joy {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.4);
-    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), rgba(0,0,0,0.3));
-    z-index: 10;
-  }
-  .joy-inner {
-    position: absolute;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.85);
-    left: 36px;
-    top: 36px;
-    transform: translateZ(0);
-  }
+    /* Фон – упрощённая городская карта */
+    #city {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(#1d2136 50%, #1a1f30 50%),
+        repeating-linear-gradient(
+          90deg,
+          #22283d 0,
+          #22283d 8px,
+          #151827 8px,
+          #151827 80px
+        );
+      background-size: 100% 100%, 120px 100%;
+      z-index: 0;
+    }
 
-  @media (min-width: 900px) {
-    .joy { bottom: 40px; left: 40px; }
-  }
-</style>
+    .road {
+      position: absolute;
+      background: #444851;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.6) inset;
+    }
+    .road.horizontal {
+      height: 80px;
+      left: 0;
+      right: 0;
+    }
+    .road.vertical {
+      width: 80px;
+      top: 0;
+      bottom: 0;
+    }
+    .road-mark {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 6px;
+      transform: translateY(-50%);
+      background-image: repeating-linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.7) 0,
+        rgba(255, 255, 255, 0.7) 20px,
+        transparent 20px,
+        transparent 40px
+      );
+      opacity: 0.7;
+    }
+
+    .house {
+      position: absolute;
+      background: #3c2b39;
+      border-radius: 10px;
+      box-shadow: 0 0 18px rgba(0, 0, 0, 0.7);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    .house::before {
+      content: "";
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      top: 10%;
+      bottom: 55%;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(255, 215, 0, 0.8) 0,
+          rgba(255, 215, 0, 0.8) 6px,
+          transparent 6px,
+          transparent 14px
+        );
+      opacity: 0.8;
+    }
+
+    #player {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #fff9c4 0, #ffd54f 40%, #f9a825 70%, #f57f17 100%);
+      box-shadow: 0 0 18px rgba(255, 215, 0, 0.7);
+      z-index: 3;
+      transform-origin: center;
+    }
+    #player::after {
+      content: "";
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.7);
+      top: 12px;
+      left: 18px;
+      box-shadow: 10px 0 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .bottle {
+      position: absolute;
+      width: auto;
+      height: 40px; /* бутылка уменьшена в 3 раза */
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #timer,
+    #score {
+      position: absolute;
+      top: 10px;
+      color: #fff;
+      font-size: 24px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(6px);
+      z-index: 10;
+    }
+    #timer {
+      left: 10px;
+    }
+    #score {
+      right: 10px;
+    }
+
+    #message {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      padding: 16px 24px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      font-size: 20px;
+      text-align: center;
+      z-index: 20;
+      display: none;
+    }
+    #message button {
+      margin-top: 12px;
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    /* Джойстик по центру и увеличен в 1.5 раза */
+    #joystick-wrapper {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%) scale(1.5);
+      transform-origin: center;
+      z-index: 15;
+    }
+    #joystick {
+      width: 200px;
+      height: 200px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 8px;
+      justify-items: center;
+      align-items: center;
+    }
+    .joy-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 26px;
+      color: #fff;
+      user-select: none;
+      touch-action: none;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
+    }
+    .joy-btn:active {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(0.95);
+    }
+    .joy-empty {
+      width: 64px;
+      height: 64px;
+    }
+
+    @media (min-width: 900px) {
+      #joystick-wrapper {
+        bottom: 35px;
+      }
+    }
+  </style>
 </head>
 <body>
-<canvas id="game"></canvas>
+  <div id="game">
+    <div id="city"></div>
 
-<div class="hud">
-  <div>Счёт: <span id="score">0</span></div>
-  <div>Время: <span id="time">120</span> c</div>
-</div>
+    <!-- Дороги -->
+    <div class="road horizontal" id="road1">
+      <div class="road-mark"></div>
+    </div>
+    <div class="road vertical" id="road2"></div>
 
-<div class="joy">
-  <div class="joy-inner" id="stick"></div>
-</div>
+    <!-- Дома -->
+    <div class="house" id="house1"></div>
+    <div class="house" id="house2"></div>
+    <div class="house" id="house3"></div>
 
-<script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
-function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener("resize", resize);
+    <div id="player"></div>
+    <div id="timer">30</div>
+    <div id="score">0</div>
 
-// HUD
-const scoreEl = document.getElementById("score");
-const timeEl  = document.getElementById("time");
+    <div id="message">
+      <div id="message-text"></div>
+      <button id="restart-btn">Играть еще</button>
+    </div>
 
-// Мир уменьшен в 2 раза
-const WORLD_W = 2500;
-const WORLD_H = 2500;
+    <div id="joystick-wrapper">
+      <div id="joystick">
+        <div class="joy-empty"></div>
+        <div class="joy-btn" data-dir="up">▲</div>
+        <div class="joy-empty"></div>
+        <div class="joy-btn" data-dir="left">◀</div>
+        <div class="joy-btn" data-dir="down">▼</div>
+        <div class="joy-btn" data-dir="right">▶</div>
+        <div class="joy-empty"></div>
+      </div>
+    </div>
+  </div>
 
-// Assets
-const gypsyImg = new Image();
-gypsyImg.src = "assets/gypsy.png";
+  <script>
+    const game = document.getElementById("game");
+    const playerEl = document.getElementById("player");
+    const timerEl = document.getElementById("timer");
+    const scoreEl = document.getElementById("score");
+    const messageEl = document.getElementById("message");
+    const messageTextEl = document.getElementById("message-text");
+    const restartBtn = document.getElementById("restart-btn");
+    const joystick = document.getElementById("joystick");
 
-const bottleImg = new Image();
-bottleImg.src = "assets/bottle.png";
+    const road1 = document.getElementById("road1");
+    const road2 = document.getElementById("road2");
+    const house1 = document.getElementById("house1");
+    const house2 = document.getElementById("house2");
+    const house3 = document.getElementById("house3");
 
-// Игрок
-const player = {
-  x: WORLD_W / 2,
-  y: WORLD_H / 2,
-  speed: 0.26,
-};
+    let gameRect = { width: 0, height: 0 };
+    let player = { x: 0, y: 0, size: 48, speed: 3.2 };
+    let activeDirs = { up: false, down: false, left: false, right: false };
+    let bottles = [];
+    let obstacles = [];
+    let timeLeft = 30;
+    let score = 0;
+    let running = true;
+    let lastTime = null;
+    let bottleTimer = 0;
+    const bottleInterval = 1000; // 1 секунда
 
-// Анимация
-const frameW = 64;
-const frameH = 64;
-let frame = 0;
-let frameTimer = 0;
-let dir = 0; // 0-вниз,1-вверх,2-влево,3-вправо
+    function initLayout() {
+      const rect = game.getBoundingClientRect();
+      gameRect.width = rect.width;
+      gameRect.height = rect.height;
 
-// Управление
-let joyDX = 0, joyDY = 0;
-const joy = document.querySelector(".joy");
-const stick = document.getElementById("stick");
-let joyActive = false;
+      // Дорога горизонтальная – примерно по центру
+      const roadHeight = 80;
+      road1.style.top = gameRect.height * 0.4 + "px";
 
-function handleJoyTouch(e) {
-  const rect = joy.getBoundingClientRect();
-  const t = e.touches[0];
-  const cx = rect.left + rect.width / 2;
-  const cy = rect.top + rect.height / 2;
-  const x = t.clientX - cx;
-  const y = t.clientY - cy;
-  const dist = Math.hypot(x, y);
-  const max = rect.width * 0.4;
-  if (dist < 4) {
-    joyDX = joyDY = 0;
-    stick.style.left = "36px";
-    stick.style.top  = "36px";
-    return;
-  }
-  const nx = x / dist;
-  const ny = y / dist;
-  const cl = Math.min(dist, max);
-  joyDX = nx * (cl / max);
-  joyDY = ny * (cl / max);
-  stick.style.left = (36 + joyDX * 30) + "px";
-  stick.style.top  = (36 + joyDY * 30) + "px";
-}
+      // Дорога вертикальная – левее центра
+      const roadWidth = 80;
+      road2.style.left = gameRect.width * 0.28 + "px";
 
-joy.addEventListener("touchstart", e => {
-  joyActive = true;
-  handleJoyTouch(e);
-}, {passive:false});
+      // Дома по краям
+      const houseSize = 130;
 
-joy.addEventListener("touchmove", e => {
-  e.preventDefault();
-  if (!joyActive) return;
-  handleJoyTouch(e);
-}, {passive:false});
+      house1.style.width = houseSize + "px";
+      house1.style.height = houseSize + "px";
+      house1.style.left = gameRect.width * 0.1 + "px";
+      house1.style.top = gameRect.height * 0.15 + "px";
 
-joy.addEventListener("touchend", e => {
-  joyActive = false;
-  joyDX = joyDY = 0;
-  stick.style.left = "36px";
-  stick.style.top  = "36px";
-}, {passive:false});
+      house2.style.width = houseSize + "px";
+      house2.style.height = houseSize + "px";
+      house2.style.right = gameRect.width * 0.08 + "px";
+      house2.style.top = gameRect.height * 0.12 + "px";
 
-joy.addEventListener("touchcancel", e => {
-  joyActive = false;
-  joyDX = joyDY = 0;
-  stick.style.left = "36px";
-  stick.style.top  = "36px";
-}, {passive:false});
+      house3.style.width = houseSize + "px";
+      house3.style.height = houseSize + "px";
+      house3.style.right = gameRect.width * 0.15 + "px";
+      house3.style.bottom = gameRect.height * 0.15 + "px";
 
-// Клавиатура
-const keys = {ArrowUp:false,ArrowDown:false,ArrowLeft:false,ArrowRight:false};
-document.addEventListener("keydown", e => {
-  if (e.key in keys) keys[e.key] = true;
-});
-document.addEventListener("keyup", e => {
-  if (e.key in keys) keys[e.key] = false;
-});
+      // Игрок в центре
+      player.x = gameRect.width / 2 - player.size / 2;
+      player.y = gameRect.height / 2 - player.size / 2;
+      updatePlayerPosition();
 
-// Препятствия: дома и дороги (простые прямоугольники)
-const obstacles = [
-  // Дома (кварталы)
-  {x:200,  y:200,  w:350, h:220, type:"house"},
-  {x:800,  y:250,  w:320, h:260, type:"house"},
-  {x:1450, y:300,  w:380, h:230, type:"house"},
-  {x:400,  y:900,  w:360, h:260, type:"house"},
-  {x:1350, y:900,  w:420, h:260, type:"house"},
-  {x:500,  y:1500, w:340, h:260, type:"house"},
-  {x:1550, y:1500, w:360, h:260, type:"house"},
-
-  // Дороги — серые полосы
-  {x:0,    y:700,  w:WORLD_W, h:140, type:"road"},
-  {x:0,    y:1350, w:WORLD_W, h:140, type:"road"},
-  {x:650,  y:0,    w:140, h:WORLD_H, type:"road"},
-  {x:1350, y:0,    w:140, h:WORLD_H, type:"road"},
-];
-
-function isBlocked(nx, ny) {
-  // Коллайдер игрока как маленький квадрат
-  const r = 20;
-  const left = nx - r;
-  const right = nx + r;
-  const top = ny - r;
-  const bottom = ny + r;
-  for (const o of obstacles) {
-    const oL = o.x;
-    const oR = o.x + o.w;
-    const oT = o.y;
-    const oB = o.y + o.h;
-    if (right > oL && left < oR && bottom > oT && top < oB) {
-      // По дорогам можем ходить, по домам нет
-      if (o.type === "house") return true;
-    }
-  }
-  return false;
-}
-
-// Бутылки
-let bottles = [];
-let lastSpawn = 0;
-const BOTTLE_LIFETIME = 5000;
-const SPAWN_INTERVAL = 900;
-
-// Игра
-let score = 0;
-let timeLeft = 120000;
-let lastTime = performance.now();
-let gameOver = false;
-
-function spawnBottle() {
-  // Спавним не внутри домов
-  for (let i = 0; i < 20; i++) {
-    const x = 80 + Math.random() * (WORLD_W - 160);
-    const y = 80 + Math.random() * (WORLD_H - 160);
-    if (!isBlocked(x, y)) {
-      bottles.push({ x, y, spawn: performance.now() });
-      break;
-    }
-  }
-}
-
-function update(dt, now) {
-  if (gameOver) return;
-
-  // Таймер
-  timeLeft -= dt;
-  if (timeLeft <= 0) {
-    timeLeft = 0;
-    gameOver = true;
-  }
-  timeEl.textContent = (timeLeft / 1000 | 0).toString();
-
-  // Спавн бутылок
-  if (now - lastSpawn > SPAWN_INTERVAL) {
-    spawnBottle();
-    lastSpawn = now;
-  }
-
-  // Движение
-  let mx = joyDX;
-  let my = joyDY;
-
-  if (!joyActive) {
-    if (keys.ArrowUp)    my -= 1;
-    if (keys.ArrowDown)  my += 1;
-    if (keys.ArrowLeft)  mx -= 1;
-    if (keys.ArrowRight) mx += 1;
-  }
-
-  if (mx !== 0 || my !== 0) {
-    const len = Math.hypot(mx, my);
-    mx /= len;
-    my /= len;
-
-    let nx = player.x + mx * player.speed * dt;
-    let ny = player.y + my * player.speed * dt;
-
-    if (!isBlocked(nx, player.y)) player.x = nx;
-    if (!isBlocked(player.x, ny)) player.y = ny;
-
-    // Направление для анимации
-    if (Math.abs(mx) > Math.abs(my)) {
-      dir = mx > 0 ? 3 : 2; // вправо / влево
-    } else {
-      dir = my > 0 ? 0 : 1; // вниз / вверх
+      rebuildObstacles();
     }
 
-    // Анимация ходьбы
-    frameTimer += dt;
-    if (frameTimer > 120) {
-      frame = (frame + 1) % 3;
-      frameTimer = 0;
-    }
-  } else {
-    frame = 1; // средний кадр как idle
-  }
+    function rebuildObstacles() {
+      obstacles = [];
 
-  // Границы мира
-  player.x = Math.min(Math.max(player.x, 30), WORLD_W - 30);
-  player.y = Math.min(Math.max(player.y, 30), WORLD_H - 30);
-
-  // Обновить бутылки
-  bottles = bottles.filter(b => {
-    if (now - b.spawn > BOTTLE_LIFETIME) return false;
-    const dist = Math.hypot(player.x - b.x, player.y - b.y);
-    if (dist < 45) {
-      score++;
-      scoreEl.textContent = score.toString();
-      return false;
-    }
-    return true;
-  });
-}
-
-function drawCityBackground(camX, camY) {
-  // Фон — плита города
-  ctx.fillStyle = "#20252f";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.save();
-  ctx.translate(-camX, -camY);
-
-  // Дороги
-  for (const o of obstacles) {
-    if (o.type === "road") {
-      ctx.fillStyle = "#555b66";
-      ctx.fillRect(o.x, o.y, o.w, o.h);
-
-      // Разметка
-      ctx.strokeStyle = "rgba(255,255,255,0.5)";
-      ctx.setLineDash([12, 12]);
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      if (o.w > o.h) {
-        // горизонтальная
-        const cy = o.y + o.h / 2;
-        ctx.moveTo(o.x + 10, cy);
-        ctx.lineTo(o.x + o.w - 10, cy);
-      } else {
-        // вертикальная
-        const cx = o.x + o.w / 2;
-        ctx.moveTo(cx, o.y + 10);
-        ctx.lineTo(cx, o.y + o.h - 10);
+      function addObstacle(el) {
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const g = game.getBoundingClientRect();
+        obstacles.push({
+          x: r.left - g.left,
+          y: r.top - g.top,
+          w: r.width,
+          h: r.height,
+        });
       }
-      ctx.stroke();
-      ctx.setLineDash([]);
+
+      addObstacle(road1);
+      addObstacle(road2);
+      addObstacle(house1);
+      addObstacle(house2);
+      addObstacle(house3);
     }
-  }
 
-  // Дома
-  for (const o of obstacles) {
-    if (o.type === "house") {
-      ctx.fillStyle = "#2f3b52";
-      ctx.fillRect(o.x, o.y, o.w, o.h);
-      ctx.strokeStyle = "rgba(0,0,0,0.4)";
-      ctx.lineWidth = 3;
-      ctx.strokeRect(o.x, o.y, o.w, o.h);
+    function updatePlayerPosition() {
+      playerEl.style.left = player.x + "px";
+      playerEl.style.top = player.y + "px";
+    }
 
-      // окна
-      ctx.fillStyle = "rgba(255,227,115,0.9)";
-      const cols = Math.max(2, Math.floor(o.w / 80));
-      const rows = Math.max(2, Math.floor(o.h / 80));
-      for (let i = 0; i < cols; i++) {
-        for (let j = 0; j < rows; j++) {
-          const wx = o.x + 20 + i * (o.w - 40) / (cols - 1);
-          const wy = o.y + 20 + j * (o.h - 40) / (rows - 1);
-          ctx.fillRect(wx - 8, wy - 8, 16, 16);
+    function rectsOverlap(a, b) {
+      return !(
+        a.x + a.w < b.x ||
+        a.x > b.x + b.w ||
+        a.y + a.h < b.y ||
+        a.y > b.y + b.h
+      );
+    }
+
+    function tryMove(dx, dy) {
+      const newRect = {
+        x: player.x + dx,
+        y: player.y + dy,
+        w: player.size,
+        h: player.size,
+      };
+
+      // Ограничение полем
+      if (newRect.x < 0) newRect.x = 0;
+      if (newRect.y < 0) newRect.y = 0;
+      if (newRect.x + newRect.w > gameRect.width)
+        newRect.x = gameRect.width - newRect.w;
+      if (newRect.y + newRect.h > gameRect.height)
+        newRect.y = gameRect.height - newRect.h;
+
+      // Столкновение с препятствиями
+      for (const ob of obstacles) {
+        if (rectsOverlap(newRect, ob)) {
+          return; // блокируем
         }
       }
+
+      player.x = newRect.x;
+      player.y = newRect.y;
+      updatePlayerPosition();
     }
-  }
 
-  ctx.restore();
-}
+    function spawnBottle() {
+      if (!running) return;
+      const img = document.createElement("img");
+      img.className = "bottle";
+      img.src =
+        "data:image/png;base64,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";
 
-function draw(now) {
-  const camX = player.x - canvas.width / 2;
-  const camY = player.y - canvas.height / 2;
+      const margin = 60;
+      img.style.left =
+        margin + Math.random() * (gameRect.width - margin * 2) + "px";
+      img.style.top =
+        margin + Math.random() * (gameRect.height - margin * 2) + "px";
 
-  drawCityBackground(camX, camY);
+      game.appendChild(img);
+      bottles.push(img);
+    }
 
-  ctx.save();
-  ctx.translate(-camX, -camY);
+    function updateBottles() {
+      const playerRect = {
+        x: player.x,
+        y: player.y,
+        w: player.size,
+        h: player.size,
+      };
 
-  // Бутылки
-  bottles.forEach(b => {
-    const w = bottleImg.width;
-    const h = bottleImg.height;
-    ctx.drawImage(bottleImg, b.x - w/2, b.y - h + 20);
-  });
+      bottles = bottles.filter((bottle) => {
+        const r = bottle.getBoundingClientRect();
+        const g = game.getBoundingClientRect();
+        const bottleRect = {
+          x: r.left - g.left,
+          y: r.top - g.top,
+          w: r.width,
+          h: r.height,
+        };
 
-  // Игрок
-  if (gypsyImg.complete) {
-    ctx.drawImage(
-      gypsyImg,
-      frame * frameW,
-      dir * frameH,
-      frameW, frameH,
-      player.x - frameW / 2,
-      player.y - frameH / 2,
-      frameW, frameH
-    );
-  } else {
-    ctx.fillStyle = "white";
-    ctx.beginPath();
-    ctx.arc(player.x, player.y, 20, 0, Math.PI * 2);
-    ctx.fill();
-  }
+        if (rectsOverlap(playerRect, bottleRect)) {
+          score++;
+          scoreEl.textContent = score;
+          bottle.remove();
+          return false;
+        }
+        return true;
+      });
+    }
 
-  ctx.restore();
+    function setMessage(text) {
+      messageTextEl.textContent = text;
+      messageEl.style.display = "block";
+    }
 
-  if (gameOver) {
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#fff";
-    ctx.font = "28px system-ui";
-    ctx.textAlign = "center";
-    ctx.fillText("Игра окончена", canvas.width/2, canvas.height/2 - 10);
-    ctx.font = "22px system-ui";
-    ctx.fillText("Собрано бутылок: " + score, canvas.width/2, canvas.height/2 + 24);
-  }
-}
+    function resetGame() {
+      timeLeft = 30;
+      score = 0;
+      scoreEl.textContent = "0";
+      timerEl.textContent = "30";
+      running = true;
+      messageEl.style.display = "none";
 
-function loop(now) {
-  const dt = now - lastTime;
-  lastTime = now;
-  update(dt, now);
-  draw(now);
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-</script>
+      bottles.forEach((b) => b.remove());
+      bottles = [];
+
+      initLayout();
+      lastTime = null;
+      bottleTimer = 0;
+      requestAnimationFrame(loop);
+    }
+
+    function loop(timestamp) {
+      if (!running) return;
+
+      if (!lastTime) lastTime = timestamp;
+      const dt = timestamp - lastTime;
+      lastTime = timestamp;
+
+      // Движение игрока
+      let dx = 0;
+      let dy = 0;
+      if (activeDirs.up) dy -= player.speed;
+      if (activeDirs.down) dy += player.speed;
+      if (activeDirs.left) dx -= player.speed;
+      if (activeDirs.right) dx += player.speed;
+
+      if (dx !== 0 || dy !== 0) {
+        tryMove(dx, dy);
+
+        // Поворот персонажа по направлению движения
+        const angle = Math.atan2(dy, dx);
+        const deg = (angle * 180) / Math.PI;
+        if (!isNaN(deg)) {
+          playerEl.style.transform = "rotate(" + (deg + 90) + "deg)";
+        }
+      }
+
+      // Таймер
+      timeLeft -= dt / 1000;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        timerEl.textContent = "0";
+        running = false;
+        setMessage("Время вышло!\nТы собрал бутылок: " + score);
+        return;
+      } else {
+        timerEl.textContent = Math.ceil(timeLeft);
+      }
+
+      // Спавн бутылок каждые 1 сек
+      bottleTimer += dt;
+      if (bottleTimer >= bottleInterval) {
+        bottleTimer -= bottleInterval;
+        spawnBottle();
+      }
+
+      updateBottles();
+      requestAnimationFrame(loop);
+    }
+
+    // Управление джойстиком (тач + мышь)
+    function bindJoystick() {
+      const buttons = joystick.querySelectorAll(".joy-btn");
+
+      buttons.forEach((btn) => {
+        const dir = btn.dataset.dir;
+        const start = (e) => {
+          e.preventDefault();
+          activeDirs[dir] = true;
+        };
+        const end = (e) => {
+          e.preventDefault();
+          activeDirs[dir] = false;
+        };
+
+        btn.addEventListener("touchstart", start);
+        btn.addEventListener("touchend", end);
+        btn.addEventListener("touchcancel", end);
+
+        btn.addEventListener("mousedown", start);
+        btn.addEventListener("mouseup", end);
+        btn.addEventListener("mouseleave", end);
+      });
+    }
+
+    restartBtn.addEventListener("click", () => {
+      resetGame();
+    });
+
+    window.addEventListener("resize", () => {
+      initLayout();
+    });
+
+    bindJoystick();
+    initLayout();
+    requestAnimationFrame(loop);
+  </script>
 </body>
 </html>
