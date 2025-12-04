@@ -2,483 +2,60 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>Gypsy Bottle Game - 30 сек</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #111;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      touch-action: none;
-      -webkit-user-select: none;
-      user-select: none;
-    }
-
-    #gameWrapper {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: radial-gradient(circle at top, #333 0, #000 55%, #000 100%);
-    }
-
-    #hud {
-      position: relative;
-      z-index: 2;
-      padding: 8px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 16px;
-      color: #f8f8f8;
-      text-shadow: 0 0 4px #000;
-    }
-
-    #hud span {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    #hud-label {
-      font-size: 13px;
-      opacity: 0.8;
-    }
-
-    #gameCanvas {
-      flex: 1;
-      display: block;
-      background: url("city-map.jpg") center / cover no-repeat, #222;
-      touch-action: none;
-    }
-
-    /* Кнопка старт/рестарт */
-    #startBtn {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      padding: 12px 22px;
-      border-radius: 999px;
-      border: none;
-      font-size: 16px;
-      font-weight: 600;
-      background: linear-gradient(135deg, #ffd54f, #ff9100);
-      color: #222;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.45);
-      z-index: 3;
-    }
-
-    #startBtn:active {
-      transform: translate(-50%, -50%) scale(0.97);
-    }
-
-    /* Сообщения по центру */
-    #centerMessage {
-      position: absolute;
-      left: 50%;
-      top: 42%;
-      transform: translateX(-50%);
-      color: #fff;
-      font-size: 20px;
-      text-align: center;
-      text-shadow: 0 0 6px #000;
-      z-index: 3;
-      padding: 0 12px;
-      pointer-events: none;
-    }
-
-    /* Сенсорное управление (джойстик) */
-    #controls {
-      position: absolute;
-      left: 50%;
-      bottom: 12px;
-      transform: translateX(-50%);
-      width: min(340px, 80vw);
-      display: flex;
-      justify-content: center;
-      z-index: 3;
-    }
-
-    .stick-wrapper {
-      position: relative;
-      width: 180px;  /* увеличено ~х1.5 */
-      height: 180px;
-      border-radius: 50%;
-      background: radial-gradient(circle, #222 0, #000 70%);
-      box-shadow: 0 0 12px rgba(0,0,0,0.7);
-      border: 2px solid rgba(255,255,255,0.08);
-      touch-action: none;
-    }
-
-    .stick-inner {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 72px;
-      height: 72px;
-      margin-left: -36px;
-      margin-top: -36px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ffeb3b, #ff9100);
-      box-shadow: 0 0 18px rgba(0,0,0,0.8);
-      touch-action: none;
-    }
-
-    #infoBanner {
-      position: absolute;
-      top: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.65);
-      color: #fff;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      z-index: 3;
-      display: none;
-      backdrop-filter: blur(6px);
-    }
-
-    @media (min-width: 768px) {
-      #hud {
-        font-size: 18px;
-      }
-      #centerMessage {
-        font-size: 22px;
-      }
-      .stick-wrapper {
-        width: 200px;
-        height: 200px;
-      }
-      .stick-inner {
-        width: 80px;
-        height: 80px;
-        margin-left: -40px;
-        margin-top: -40px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Gypsy Walk - 30 sec</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+html,body{margin:0;padding:0;overflow:hidden;background:#000;}
+#gameCanvas{width:100vw;height:100vh;display:block;background:url('assets/city-map.png') center/cover no-repeat;}
+#timer{position:fixed;top:10px;left:10px;color:white;font-size:24px;font-weight:bold;text-shadow:0 0 6px black;}
+</style>
 </head>
 <body>
-<div id="gameWrapper">
-  <div id="hud">
-    <span>
-      <span id="hud-label">⏱ Время:</span>
-      <strong id="time">30</strong> c
-    </span>
-    <span>
-      <span id="hud-label">🍾 Баланс:</span>
-      <strong id="score">0</strong>
-    </span>
-  </div>
-
-  <canvas id="gameCanvas"></canvas>
-
-  <button id="startBtn">Играть 30 сек</button>
-  <div id="centerMessage"></div>
-  <div id="infoBanner">Управление: двигай круг джойстика</div>
-
-  <div id="controls">
-    <div class="stick-wrapper" id="stickWrapper">
-      <div class="stick-inner" id="stickInner"></div>
-    </div>
-  </div>
-</div>
+<canvas id="gameCanvas"></canvas>
+<div id="timer">30</div>
 
 <script>
-  // ================== НАСТРОЙКИ ИГРЫ ==================
-  const GAME_TIME = 30; // секунд
-  const PLAYER_SPEED = 210; // пикселей в секунду
-  const BOTTLE_SPAWN_INTERVAL = 700; // ms, часто спавним бутылки
-  const MAX_BOTTLES = 12;
-  const BOTTLE_SIZE = 32; // маленькая бутылка (через спрайт)
-  const PLAYER_SIZE = 40;
+const canvas=document.getElementById("gameCanvas");
+const ctx=canvas.getContext("2d");
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+resize();window.onresize=resize;
 
-  const canvas = document.getElementById("gameCanvas");
-  const ctx = canvas.getContext("2d");
+const playerImg=new Image(); playerImg.src="assets/gypsy.png";
+let x=200, y=200, size=80;
+let keys={};
+document.addEventListener("keydown",e=>keys[e.key]=true);
+document.addEventListener("keyup",e=>keys[e.key]=false);
 
-  const timeEl = document.getElementById("time");
-  const scoreEl = document.getElementById("score");
-  const startBtn = document.getElementById("startBtn");
-  const centerMessage = document.getElementById("centerMessage");
-  const infoBanner = document.getElementById("infoBanner");
+let time=30;
+setInterval(()=>{
+ if(time>0) time--;
+ document.getElementById("timer").textContent=time;
+},1000);
 
-  const stickWrapper = document.getElementById("stickWrapper");
-  const stickInner = document.getElementById("stickInner");
+function loop(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  let cw = 0, ch = 0;
+ let speed=3;
+ if(keys["ArrowUp"]||keys["w"]) y-=speed;
+ if(keys["ArrowDown"]||keys["s"]) y+=speed;
+ if(keys["ArrowLeft"]||keys["a"]) x-=speed;
+ if(keys["ArrowRight"]||keys["d"]) x+=speed;
 
-  // Игровые переменные
-  let player = {
-    x: 0,
-    y: 0,
-    size: PLAYER_SIZE,
-  };
+ if(x<0)x=0;if(y<0)y=0;
+ if(x>canvas.width-size)x=canvas.width-size;
+ if(y>canvas.height-size)y=canvas.height-size;
 
-  let bottles = [];
-  let score = 0;
-  let gameTimeLeft = GAME_TIME;
-  let lastTimestamp = 0;
-  let isRunning = false;
-  let spawnTimer = 0;
+ if(playerImg.complete)
+   ctx.drawImage(playerImg,x,y,size,size);
+ else{
+   ctx.fillStyle="yellow";
+   ctx.fillRect(x,y,size,size);
+ }
 
-  // Вектор движения от джойстика
-  let moveVector = { x: 0, y: 0 };
-
-  // Загрузка спрайтов (персонаж и бутылка)
-  const playerImg = new Image();
-  // персонаж игрока - сюда подставь свой файл, лежащий рядом с html
-  playerImg.src = "player.png";
-
-  const bottleImg = new Image();
-  // бутылка игрока - png, уменьшенная в 3 раза
-  bottleImg.src = "bottle.png";
-
-  // Обновляем размер канваса под экран
-  function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight - document.getElementById("hud").offsetHeight;
-    cw = canvas.width;
-    ch = canvas.height;
-
-    // Центрируем персонажа
-    player.x = cw / 2;
-    player.y = ch / 2;
-  }
-
-  window.addEventListener("resize", resize);
-  resize();
-
-  // ======== УПРАВЛЕНИЕ ДЖОЙСТИКОМ (тач) =========
-  let stickActive = false;
-  let stickCenter = { x: 0, y: 0 };
-
-  function getTouchPos(touch) {
-    const rect = stickWrapper.getBoundingClientRect();
-    return {
-      x: touch.clientX - rect.left,
-      y: touch.clientY - rect.top
-    };
-  }
-
-  function updateStick(dx, dy) {
-    const maxRadius = stickWrapper.clientWidth / 2 - stickInner.clientWidth / 2;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    let clampedX = dx;
-    let clampedY = dy;
-
-    if (dist > maxRadius) {
-      const k = maxRadius / dist;
-      clampedX *= k;
-      clampedY *= k;
-    }
-
-    stickInner.style.transform =
-      `translate(${clampedX}px, ${clampedY}px)`;
-
-    // Нормализованный вектор [-1 .. 1]
-    moveVector.x = clampedX / maxRadius;
-    moveVector.y = clampedY / maxRadius;
-  }
-
-  function resetStick() {
-    stickInner.style.transform = "translate(0px, 0px)";
-    moveVector.x = 0;
-    moveVector.y = 0;
-  }
-
-  stickWrapper.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    stickActive = true;
-    infoBanner.style.display = "none";
-
-    const touch = e.changedTouches[0];
-    const rect = stickWrapper.getBoundingClientRect();
-    stickCenter.x = rect.width / 2;
-    stickCenter.y = rect.height / 2;
-
-    const pos = getTouchPos(touch);
-    updateStick(pos.x - stickCenter.x, pos.y - stickCenter.y);
-  }, { passive: false });
-
-  stickWrapper.addEventListener("touchmove", (e) => {
-    e.preventDefault();
-    if (!stickActive) return;
-    const touch = e.changedTouches[0];
-    const pos = getTouchPos(touch);
-    updateStick(pos.x - stickCenter.x, pos.y - stickCenter.y);
-  }, { passive: false });
-
-  stickWrapper.addEventListener("touchend", (e) => {
-    e.preventDefault();
-    stickActive = false;
-    resetStick();
-  }, { passive: false });
-
-  // Поддержка мыши (для теста на ПК)
-  stickWrapper.addEventListener("mousedown", (e) => {
-    e.preventDefault();
-    stickActive = true;
-    infoBanner.style.display = "none";
-
-    const rect = stickWrapper.getBoundingClientRect();
-    stickCenter.x = rect.width / 2;
-    stickCenter.y = rect.height / 2;
-    const dx = e.clientX - rect.left - stickCenter.x;
-    const dy = e.clientY - rect.top - stickCenter.y;
-    updateStick(dx, dy);
-  });
-
-  window.addEventListener("mousemove", (e) => {
-    if (!stickActive) return;
-    const rect = stickWrapper.getBoundingClientRect();
-    const dx = e.clientX - rect.left - stickCenter.x;
-    const dy = e.clientY - rect.top - stickCenter.y;
-    updateStick(dx, dy);
-  });
-
-  window.addEventListener("mouseup", () => {
-    if (!stickActive) return;
-    stickActive = false;
-    resetStick();
-  });
-
-  // ========= ЛОГИКА СПАВНА БУТЫЛОК =========
-  function spawnBottle() {
-    if (bottles.length >= MAX_BOTTLES) return;
-    const margin = 24;
-    const x = margin + Math.random() * (cw - margin * 2);
-    const y = margin + Math.random() * (ch - margin * 2);
-
-    bottles.push({
-      x,
-      y,
-      size: BOTTLE_SIZE
-    });
-  }
-
-  // ========= СТАРТ / РЕСТАРТ ИГРЫ =========
-  function resetGame() {
-    score = 0;
-    gameTimeLeft = GAME_TIME;
-    bottles = [];
-    spawnTimer = 0;
-    lastTimestamp = 0;
-    timeEl.textContent = gameTimeLeft.toString();
-    scoreEl.textContent = score.toString();
-    centerMessage.textContent = "";
-  }
-
-  startBtn.addEventListener("click", () => {
-    resetGame();
-    isRunning = true;
-    startBtn.style.display = "none";
-    infoBanner.style.display = "block";
-  });
-
-  // ========= ОСНОВНОЙ ЦИКЛ =========
-  function update(dt) {
-    if (!isRunning) return;
-
-    // Время
-    gameTimeLeft -= dt;
-    if (gameTimeLeft <= 0) {
-      gameTimeLeft = 0;
-      isRunning = false;
-      centerMessage.innerHTML = "⏳ Время вышло!<br>Ты собрал: <b>" + score + "</b> бутылок";
-      startBtn.textContent = "Играть ещё 30 сек";
-      startBtn.style.display = "block";
-    }
-    timeEl.textContent = Math.ceil(gameTimeLeft).toString();
-
-    // Движение персонажа от джойстика
-    const len = Math.hypot(moveVector.x, moveVector.y);
-    let vx = 0, vy = 0;
-    if (len > 0.1) {
-      vx = (moveVector.x / len) * PLAYER_SPEED;
-      vy = (moveVector.y / len) * PLAYER_SPEED;
-    }
-
-    player.x += vx * dt;
-    player.y += vy * dt;
-
-    // Границы карты
-    const half = player.size / 2;
-    if (player.x < half) player.x = half;
-    if (player.x > cw - half) player.x = cw - half;
-    if (player.y < half) player.y = half;
-    if (player.y > ch - half) player.y = ch - half;
-
-    // Спавн бутылок
-    spawnTimer += dt * 1000;
-    if (spawnTimer >= BOTTLE_SPAWN_INTERVAL) {
-      spawnTimer = 0;
-      spawnBottle();
-    }
-
-    // Проверка столкновений с бутылками
-    for (let i = bottles.length - 1; i >= 0; i--) {
-      const b = bottles[i];
-      const dx = player.x - b.x;
-      const dy = player.y - b.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < (player.size / 2 + b.size / 2) * 0.9) {
-        // Собрали бутылку
-        bottles.splice(i, 1);
-        score += 1;
-        scoreEl.textContent = score.toString();
-      }
-    }
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, cw, ch);
-
-    // Отрисовка бутылок
-    bottles.forEach(b => {
-      const size = b.size;
-      if (bottleImg.complete && bottleImg.naturalWidth > 0) {
-        ctx.drawImage(bottleImg, b.x - size / 2, b.y - size / 2, size, size);
-      } else {
-        // Фолбек, если нет картинки
-        ctx.fillStyle = "#ffeb3b";
-        ctx.beginPath();
-        ctx.arc(b.x, b.y, size / 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    });
-
-    // Отрисовка персонажа
-    const ps = player.size;
-    if (playerImg.complete && playerImg.naturalWidth > 0) {
-      ctx.drawImage(playerImg, player.x - ps / 2, player.y - ps / 2, ps, ps);
-    } else {
-      ctx.fillStyle = "#ffd54f";
-      ctx.beginPath();
-      ctx.arc(player.x, player.y, ps / 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  function gameLoop(timestamp) {
-    if (!lastTimestamp) lastTimestamp = timestamp;
-    const dt = (timestamp - lastTimestamp) / 1000;
-    lastTimestamp = timestamp;
-
-    update(dt);
-    draw();
-
-    requestAnimationFrame(gameLoop);
-  }
-
-  requestAnimationFrame(gameLoop);
+ requestAnimationFrame(loop);
+}
+loop();
 </script>
 </body>
 </html>
