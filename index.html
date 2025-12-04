@@ -3,17 +3,17 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Gypsy Walk - 30 sec</title>
+<title>Gypsy Bottle Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html,body{margin:0;padding:0;overflow:hidden;background:#000;}
-#gameCanvas{width:100vw;height:100vh;display:block;background:url('assets/city-map.png') center/cover no-repeat;}
-#timer{position:fixed;top:10px;left:10px;color:white;font-size:24px;font-weight:bold;text-shadow:0 0 6px black;}
+#gameCanvas{display:block;width:100vw;height:100vh;background:url('assets/city-map.png') center/cover no-repeat;}
+#hud{position:fixed;top:10px;left:10px;color:white;font-size:24px;font-weight:bold;text-shadow:0 0 5px black;}
 </style>
 </head>
 <body>
 <canvas id="gameCanvas"></canvas>
-<div id="timer">30</div>
+<div id="hud"><span id="time">30</span>s | 🍾 <span id="score">0</span></div>
 
 <script>
 const canvas=document.getElementById("gameCanvas");
@@ -22,40 +22,68 @@ function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
 resize();window.onresize=resize;
 
 const playerImg=new Image(); playerImg.src="assets/gypsy.png";
-let x=200, y=200, size=80;
+const bottleImg=new Image(); bottleImg.src="assets/bottle.png";
+
+let player={x:200,y:200,size:60};
+let bottles=[];
+let score=0;
+let time=30;
 let keys={};
+
 document.addEventListener("keydown",e=>keys[e.key]=true);
 document.addEventListener("keyup",e=>keys[e.key]=false);
 
-let time=30;
 setInterval(()=>{
  if(time>0) time--;
- document.getElementById("timer").textContent=time;
+ document.getElementById("time").textContent=time;
 },1000);
+
+function spawnBottle(){
+  if(bottles.length<10){
+    bottles.push({
+      x:Math.random()*canvas.width,
+      y:Math.random()*canvas.height,
+      size:40
+    });
+  }
+}
+setInterval(spawnBottle,700);
 
 function loop(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
 
- let speed=3;
- if(keys["ArrowUp"]||keys["w"]) y-=speed;
- if(keys["ArrowDown"]||keys["s"]) y+=speed;
- if(keys["ArrowLeft"]||keys["a"]) x-=speed;
- if(keys["ArrowRight"]||keys["d"]) x+=speed;
+ let s=3;
+ if(keys['ArrowUp']||keys['w']) player.y-=s;
+ if(keys['ArrowDown']||keys['s']) player.y+=s;
+ if(keys['ArrowLeft']||keys['a']) player.x-=s;
+ if(keys['ArrowRight']||keys['d']) player.x+=s;
 
- if(x<0)x=0;if(y<0)y=0;
- if(x>canvas.width-size)x=canvas.width-size;
- if(y>canvas.height-size)y=canvas.height-size;
+ if(player.x<0)player.x=0;
+ if(player.y<0)player.y=0;
+ if(player.x>canvas.width-player.size)player.x=canvas.width-player.size;
+ if(player.y>canvas.height-player.size)player.y=canvas.height-player.size;
 
- if(playerImg.complete)
-   ctx.drawImage(playerImg,x,y,size,size);
- else{
-   ctx.fillStyle="yellow";
-   ctx.fillRect(x,y,size,size);
+ bottles.forEach(b=>{
+   ctx.drawImage(bottleImg,b.x,b.y,b.size,b.size);
+ });
+
+ for(let i=bottles.length-1;i>=0;i--){
+   let b=bottles[i];
+   let dx=(player.x+player.size/2)-(b.x+b.size/2);
+   let dy=(player.y+player.size/2)-(b.y+b.size/2);
+   if(Math.hypot(dx,dy)<40){
+    bottles.splice(i,1);
+    score++;
+    document.getElementById("score").textContent=score;
+   }
  }
+
+ ctx.drawImage(playerImg,player.x,player.y,player.size,player.size);
 
  requestAnimationFrame(loop);
 }
 loop();
 </script>
+
 </body>
 </html>
