@@ -1,8 +1,9 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Gypsy Bottle Game - Animated</title>
+  <title>Gypsy Bottle Game – v2</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <style>
     html, body {
@@ -12,12 +13,11 @@
       height: 100%;
       overflow: hidden;
       background: #000;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
     }
-
     #gameWrapper {
       position: relative;
       width: 100vw;
@@ -25,7 +25,6 @@
       overflow: hidden;
       background: #000;
     }
-
     #gameCanvas {
       width: 100%;
       height: 100%;
@@ -33,118 +32,84 @@
       background: #222;
       touch-action: none;
     }
-
     #hud {
       position: absolute;
-      top: 8px;
+      top: 10px;
       left: 10px;
-      z-index: 3;
-      padding: 4px 10px;
+      z-index: 5;
       display: flex;
+      gap: 14px;
       align-items: center;
-      gap: 10px;
-      font-size: 18px;
-      color: #f8f8f8;
-      text-shadow: 0 0 4px #000;
+      font-size: 22px;
+      color: #fff;
+      text-shadow: 0 0 5px #000;
     }
-
     #hud span {
       display: inline-flex;
       align-items: center;
       gap: 4px;
     }
-
     #startBtn {
       position: absolute;
       left: 50%;
-      top: 50%;
+      top: 45%;
       transform: translate(-50%, -50%);
-      padding: 10px 22px;
-      border-radius: 999px;
-      border: none;
-      font-size: 16px;
-      font-weight: 600;
-      background: linear-gradient(135deg, #ffd54f, #ff9100);
+      padding: 14px 28px;
+      border-radius: 40px;
+      font-size: 20px;
+      font-weight: bold;
       color: #222;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.45);
-      z-index: 4;
+      background: linear-gradient(135deg, #ffd54f, #ff9100);
+      border: none;
+      z-index: 6;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
-
     #startBtn:active {
       transform: translate(-50%, -50%) scale(0.97);
     }
-
     #centerMessage {
       position: absolute;
       left: 50%;
-      top: 40%;
+      top: 35%;
       transform: translateX(-50%);
       color: #fff;
       font-size: 20px;
       text-align: center;
       text-shadow: 0 0 6px #000;
-      z-index: 3;
-      padding: 0 12px;
+      z-index: 5;
       pointer-events: none;
     }
-
-    #controls {
+    #joystickBase {
       position: absolute;
       left: 50%;
-      bottom: 16px;
+      bottom: 28px;
       transform: translateX(-50%);
-      width: min(340px, 80vw);
-      display: flex;
-      justify-content: center;
-      z-index: 3;
-      pointer-events: none;
-    }
-
-    .stick-wrapper {
-      position: relative;
-      width: 180px;
-      height: 180px;
+      width: 210px;
+      height: 210px;
       border-radius: 50%;
-      background: radial-gradient(circle, #222 0, #000 70%);
-      box-shadow: 0 0 12px rgba(0,0,0,0.7);
-      border: 2px solid rgba(255,255,255,0.1);
+      background: radial-gradient(circle at 30% 30%, #222, #000);
+      border: 3px solid rgba(255,255,255,0.12);
+      box-shadow: 0 0 16px rgba(0,0,0,0.85);
+      z-index: 6;
       touch-action: none;
-      pointer-events: auto;
     }
-
-    .stick-inner {
+    #joystickKnob {
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 72px;
-      height: 72px;
-      margin-left: -36px;
-      margin-top: -36px;
+      width: 90px;
+      height: 90px;
+      margin-left: -45px;
+      margin-top: -45px;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 30%, #ffeb3b, #ff9100);
-      box-shadow: 0 0 18px rgba(0,0,0,0.8);
+      box-shadow: 0 0 22px rgba(0,0,0,0.9);
       touch-action: none;
     }
-
-    #infoBanner {
-      position: absolute;
-      bottom: 210px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.65);
-      color: #fff;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-size: 12px;
-      z-index: 3;
-      display: none;
-      backdrop-filter: blur(6px);
-    }
-
     @media (min-width: 768px) {
-      #hud { font-size: 20px; }
-      .stick-wrapper { width: 200px; height: 200px; }
-      .stick-inner { width: 80px; height: 80px; margin-left: -40px; margin-top: -40px; }
+      #hud { font-size: 24px; }
+      #joystickBase { width: 230px; height: 230px; }
+      #joystickKnob { width: 100px; height: 100px; margin-left: -50px; margin-top: -50px; }
     }
   </style>
 </head>
@@ -159,21 +124,18 @@
 
   <button id="startBtn">Играть 30 сек</button>
   <div id="centerMessage"></div>
-  <div id="infoBanner">Двигай джойстик, чтобы идти и собирать бутылки</div>
 
-  <div id="controls">
-    <div class="stick-wrapper" id="stickWrapper">
-      <div class="stick-inner" id="stickInner"></div>
-    </div>
+  <div id="joystickBase">
+    <div id="joystickKnob"></div>
   </div>
 </div>
 
 <script>
 const GAME_TIME = 30;
-const PLAYER_SPEED = 200;
-const BOTTLE_SIZE = 40;
+const PLAYER_SPEED = 210;
+const BOTTLE_SIZE = 38;
 const MAX_BOTTLES = 10;
-const BOTTLE_SPAWN_INTERVAL = 700; // мс
+const BOTTLE_SPAWN_INTERVAL = 800; // мс
 const FRAME_TIME = 120; // мс между кадрами шага
 
 const canvas = document.getElementById('gameCanvas');
@@ -191,31 +153,32 @@ const timeEl = document.getElementById('time');
 const scoreEl = document.getElementById('score');
 const startBtn = document.getElementById('startBtn');
 const centerMessage = document.getElementById('centerMessage');
-const infoBanner = document.getElementById('infoBanner');
+const joyBase = document.getElementById('joystickBase');
+const joyKnob = document.getElementById('joystickKnob');
 
-const stickWrapper = document.getElementById('stickWrapper');
-const stickInner = document.getElementById('stickInner');
-
-// Спрайты
+// --- Sprites ---
 const mapImg = new Image();
 mapImg.src = 'assets/city-map.png';
 
 const playerImg = new Image();
-playerImg.src = 'assets/gypsy.png';
+playerImg.src = 'assets/gypsy.png'; // 3 кадра × 4 направления
 
 const bottleImg = new Image();
 bottleImg.src = 'assets/bottle.png';
 
-// Игровые данные
-let cw = canvas.width;
-let ch = canvas.height;
+const obstacleTopImg = new Image();
+obstacleTopImg.src = 'assets/obstacle_top.png';
 
+const obstacleBottomImg = new Image();
+obstacleBottomImg.src = 'assets/obstacle_bottom.png';
+
+// --- Game state ---
 let player = {
-  x: cw / 2,
-  y: ch / 2,
+  x: canvas.width / 2,
+  y: canvas.height / 2,
   size: 60,
-  dir: 0,          // 0-вниз,1-вправо,2-вверх,3-влево
-  frameIndex: 0,   // 0..2
+  dir: 0,        // 0-вниз,1-вправо,2-вверх,3-влево
+  frameIndex: 0, // 0..2
   frameTimer: 0,
   moving: false
 };
@@ -236,99 +199,123 @@ let bottles = [];
 let score = 0;
 let gameTimeLeft = GAME_TIME;
 let isRunning = false;
-let lastTs = 0;
 let spawnTimer = 0;
+let lastTs = 0;
 
-// Вектор движения от джойстика
+// obstacles: верх и низ во всю ширину
+function getObstacles() {
+  const h = canvas.height;
+  const w = canvas.width;
+  const bandHeight = Math.max(60, h * 0.14);
+  return [
+    { // top
+      x: 0,
+      y: 0,
+      w: w,
+      h: bandHeight
+    },
+    { // bottom
+      x: 0,
+      y: h - bandHeight,
+      w: w,
+      h: bandHeight
+    }
+  ];
+}
+
+// joystick state
+let joyActive = false;
 let moveVector = { x: 0, y: 0 };
 
-// ==== Джойстик ====
-let stickActive = false;
-
-function getStickRelative(clientX, clientY) {
-  const rect = stickWrapper.getBoundingClientRect();
+function getJoyRelative(clientX, clientY) {
+  const rect = joyBase.getBoundingClientRect();
   return {
-    x: clientX - rect.left - rect.width / 2,
-    y: clientY - rect.top - rect.height / 2,
-    maxRadius: rect.width / 2 - stickInner.offsetWidth / 2
+    x: clientX - (rect.left + rect.width / 2),
+    y: clientY - (rect.top + rect.height / 2),
+    maxRadius: rect.width / 2 - joyKnob.offsetWidth / 2
   };
 }
 
-function setStick(dx, dy, maxRadius) {
+function setJoystick(dx, dy, maxR) {
   const dist = Math.hypot(dx, dy);
-  if (dist > maxRadius && dist > 0) {
-    const k = maxRadius / dist;
-    dx *= k; dy *= k;
+  if (dist > maxR && dist > 0) {
+    const k = maxR / dist;
+    dx *= k;
+    dy *= k;
   }
-  stickInner.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
-
-  moveVector.x = dx / maxRadius;
-  moveVector.y = dy / maxRadius;
+  joyKnob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+  moveVector.x = dx / maxR;
+  moveVector.y = dy / maxR;
 }
 
-function resetStick() {
-  stickInner.style.transform = 'translate(0,0)';
+function resetJoystick() {
+  joyKnob.style.transform = 'translate(0,0)';
   moveVector.x = 0;
   moveVector.y = 0;
 }
 
-// touch
-stickWrapper.addEventListener('touchstart', (e) => {
+// touch controls
+joyBase.addEventListener('touchstart', (e) => {
   e.preventDefault();
-  infoBanner.style.display = 'none';
-  stickActive = true;
+  joyActive = true;
   const t = e.changedTouches[0];
-  const p = getStickRelative(t.clientX, t.clientY);
-  setStick(p.x, p.y, p.maxRadius);
+  const p = getJoyRelative(t.clientX, t.clientY);
+  setJoystick(p.x, p.y, p.maxRadius);
 }, { passive: false });
 
-stickWrapper.addEventListener('touchmove', (e) => {
+joyBase.addEventListener('touchmove', (e) => {
   e.preventDefault();
-  if (!stickActive) return;
+  if (!joyActive) return;
   const t = e.changedTouches[0];
-  const p = getStickRelative(t.clientX, t.clientY);
-  setStick(p.x, p.y, p.maxRadius);
+  const p = getJoyRelative(t.clientX, t.clientY);
+  setJoystick(p.x, p.y, p.maxRadius);
 }, { passive: false });
 
-stickWrapper.addEventListener('touchend', (e) => {
+joyBase.addEventListener('touchend', (e) => {
   e.preventDefault();
-  stickActive = false;
-  resetStick();
+  joyActive = false;
+  resetJoystick();
 }, { passive: false });
 
-// mouse (для теста на ПК)
-stickWrapper.addEventListener('mousedown', (e) => {
+// mouse support (для теста на ПК)
+joyBase.addEventListener('mousedown', (e) => {
   e.preventDefault();
-  infoBanner.style.display = 'none';
-  stickActive = true;
-  const p = getStickRelative(e.clientX, e.clientY);
-  setStick(p.x, p.y, p.maxRadius);
+  joyActive = true;
+  const p = getJoyRelative(e.clientX, e.clientY);
+  setJoystick(p.x, p.y, p.maxRadius);
 });
 window.addEventListener('mousemove', (e) => {
-  if (!stickActive) return;
-  const p = getStickRelative(e.clientX, e.clientY);
-  setStick(p.x, p.y, p.maxRadius);
+  if (!joyActive) return;
+  const p = getJoyRelative(e.clientX, e.clientY);
+  setJoystick(p.x, p.y, p.maxRadius);
 });
 window.addEventListener('mouseup', () => {
-  if (!stickActive) return;
-  stickActive = false;
-  resetStick();
+  if (!joyActive) return;
+  joyActive = false;
+  resetJoystick();
 });
 
-// ==== Логика игры ====
+// bottles
 function spawnBottle() {
   if (bottles.length >= MAX_BOTTLES) return;
-  const margin = 30;
-  const x = margin + Math.random() * (canvas.width - margin * 2);
-  const y = margin + Math.random() * (canvas.height - margin * 2);
+  const marginX = 40;
+  const marginY = 80;
+  const x = marginX + Math.random() * (canvas.width - marginX * 2);
+  const y = marginY + Math.random() * (canvas.height - marginY * 2);
+  const obs = getObstacles();
+  // avoid spawning inside obstacles
+  for (let o of obs) {
+    if (x > o.x && x < o.x + o.w && y > o.y && y < o.y + o.h) {
+      return;
+    }
+  }
   bottles.push({ x, y, size: BOTTLE_SIZE });
 }
 
 function resetGame() {
-  cw = canvas.width;
-  ch = canvas.height;
-  player.x = cw / 2;
-  player.y = ch / 2;
+  player.x = canvas.width / 2;
+  player.y = canvas.height / 2;
+  player.dir = 0;
   player.frameIndex = 0;
   player.frameTimer = 0;
   player.moving = false;
@@ -341,14 +328,7 @@ function resetGame() {
   centerMessage.textContent = '';
 }
 
-startBtn.addEventListener('click', () => {
-  resetGame();
-  isRunning = true;
-  startBtn.style.display = 'none';
-  infoBanner.style.display = 'block';
-});
-
-// === Вспомогательное: определяем направление по вектору ===
+// direction from movement
 function updateDirectionFromVector(vx, vy) {
   if (Math.abs(vx) < 0.1 && Math.abs(vy) < 0.1) {
     player.moving = false;
@@ -356,15 +336,43 @@ function updateDirectionFromVector(vx, vy) {
   }
   player.moving = true;
   if (Math.abs(vx) > Math.abs(vy)) {
-    // горизонталь
-    player.dir = vx > 0 ? 1 : 3; // вправо / влево
+    player.dir = vx > 0 ? 1 : 3; // 1-вправо,3-влево
   } else {
-    // вертикаль
-    player.dir = vy > 0 ? 0 : 2; // вниз / вверх
+    player.dir = vy > 0 ? 0 : 2; // 0-вниз,2-вверх
   }
 }
 
-// === Обновление ===
+// simple obstacle collision: keep player above/below bands
+function resolveObstacleCollision(oldX, oldY) {
+  const obs = getObstacles();
+  for (let o of obs) {
+    if (
+      player.x + player.size/2 > o.x &&
+      player.x - player.size/2 < o.x + o.w &&
+      player.y + player.size/2 > o.y &&
+      player.y - player.size/2 < o.y + o.h
+    ) {
+      // revert Y first to avoid sticking
+      player.y = oldY;
+      if (
+        player.x + player.size/2 > o.x &&
+        player.x - player.size/2 < o.x + o.w &&
+        player.y + player.size/2 > o.y &&
+        player.y - player.size/2 < o.y + o.h
+      ) {
+        player.x = oldX;
+      }
+    }
+  }
+}
+
+startBtn.addEventListener('click', () => {
+  resetGame();
+  isRunning = true;
+  startBtn.style.display = 'none';
+});
+
+// update loop
 function update(dt) {
   if (!isRunning) return;
 
@@ -378,14 +386,17 @@ function update(dt) {
   }
   timeEl.textContent = Math.ceil(gameTimeLeft).toString();
 
-  // движение от джойстика
+  // movement
   const len = Math.hypot(moveVector.x, moveVector.y);
   let vx = 0, vy = 0;
-  if (len > 0.1) {
+  if (len > 0.2) {
     vx = (moveVector.x / len) * PLAYER_SPEED;
     vy = (moveVector.y / len) * PLAYER_SPEED;
   }
   updateDirectionFromVector(vx, vy);
+
+  const oldX = player.x;
+  const oldY = player.y;
 
   player.x += vx * dt;
   player.y += vy * dt;
@@ -396,32 +407,34 @@ function update(dt) {
   if (player.y < half) player.y = half;
   if (player.y > canvas.height - half) player.y = canvas.height - half;
 
-  // анимация шага
+  resolveObstacleCollision(oldX, oldY);
+
+  // walk animation
   if (player.moving) {
     player.frameTimer += dt * 1000;
     if (player.frameTimer >= FRAME_TIME) {
       player.frameTimer -= FRAME_TIME;
-      player.frameIndex = (player.frameIndex + 1) % 3; // 3 кадра
+      player.frameIndex = (player.frameIndex + 1) % 3;
     }
   } else {
     player.frameIndex = 0;
     player.frameTimer = 0;
   }
 
-  // спавн бутылок
+  // spawn bottles
   spawnTimer += dt * 1000;
   if (spawnTimer >= BOTTLE_SPAWN_INTERVAL) {
     spawnTimer = 0;
     spawnBottle();
   }
 
-  // столкновения
+  // bottle collisions
   for (let i = bottles.length - 1; i >= 0; i--) {
     const b = bottles[i];
     const dx = player.x - b.x;
     const dy = player.y - b.y;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < (player.size / 2 + b.size / 2) * 0.8) {
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < (player.size/2 + b.size/2) * 0.8) {
       bottles.splice(i, 1);
       score++;
       scoreEl.textContent = score.toString();
@@ -429,49 +442,69 @@ function update(dt) {
   }
 }
 
-// === Рисование ===
+// draw loop
 function draw() {
-  // фон-карта
+  // background map
   if (mapImg.complete && mapImg.naturalWidth > 0) {
     ctx.drawImage(mapImg, 0, 0, canvas.width, canvas.height);
   } else {
-    ctx.fillStyle = '#444';
+    ctx.fillStyle = '#333';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  // бутылки
+  // obstacles
+  const obs = getObstacles();
+  obs.forEach((o, idx) => {
+    const img = idx === 0 ? obstacleTopImg : obstacleBottomImg;
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, o.x, o.y, o.w, o.h);
+    } else {
+      ctx.fillStyle = 'rgba(0,0,0,0.5)';
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+    }
+  });
+
+  // bottles
   bottles.forEach(b => {
     if (bottleImg.complete && bottleImg.naturalWidth > 0) {
       ctx.drawImage(bottleImg, b.x - b.size/2, b.y - b.size/2, b.size, b.size);
     } else {
-      ctx.fillStyle = '#aee';
+      ctx.fillStyle = '#8bc34a';
       ctx.beginPath();
-      ctx.arc(b.x, b.y, b.size/2, 0, Math.PI*2);
+      ctx.arc(b.x, b.y, b.size/2, 0, Math.PI * 2);
       ctx.fill();
     }
   });
 
-  // персонаж
+  // player
   if (sprite.ready) {
     const fw = sprite.frameW;
     const fh = sprite.frameH;
     const sx = player.frameIndex * fw;
     const sy = player.dir * fh;
-    const px = player.x - player.size / 2;
-    const py = player.y - player.size / 2;
-    ctx.drawImage(playerImg, sx, sy, fw, fh, px, py, player.size, player.size);
+    ctx.drawImage(
+      playerImg,
+      sx, sy, fw, fh,
+      player.x - player.size/2,
+      player.y - player.size/2,
+      player.size, player.size
+    );
   } else if (playerImg.complete && playerImg.naturalWidth > 0) {
-    ctx.drawImage(playerImg, player.x - player.size/2, player.y - player.size/2, player.size, player.size);
+    ctx.drawImage(
+      playerImg,
+      player.x - player.size/2,
+      player.y - player.size/2,
+      player.size, player.size
+    );
   } else {
     ctx.fillStyle = '#ffd54f';
     ctx.beginPath();
-    ctx.arc(player.x, player.y, player.size/2, 0, Math.PI*2);
+    ctx.arc(player.x, player.y, player.size/2, 0, Math.PI * 2);
     ctx.fill();
   }
 }
 
-// === Игровой цикл ===
-let lastTs = 0;
+// main loop
 function loop(ts) {
   if (!lastTs) lastTs = ts;
   const dt = (ts - lastTs) / 1000;
