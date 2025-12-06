@@ -81,60 +81,35 @@
     window.addEventListener('resize', resize);
     resize();
 
-    // --- Загрузка картинок ---
-    const mapImg = new Image();
-    mapImg.src = 'assets/city-map.png';
-
-    const playerImg = new Image();
-    playerImg.src = 'assets/gypsy.png';
-
-    const bottleImg = new Image();
-    bottleImg.src = 'assets/bottle.png';
-
+    // --- Статусы загрузки ---
     let mapReady = false;
     let playerReady = false;
     let bottleReady = false;
-
-    mapImg.onload = () => {
-      mapReady = true;
-      initCollisionMap();
-      placePlayerOnRoad();
-    };
-    playerImg.onload = () => { playerReady = true; };
-    bottleImg.onload = () => { bottleReady = true; };
 
     // --- Канвас для проверки проходимости ---
     const collisionCanvas = document.createElement('canvas');
     const collisionCtx = collisionCanvas.getContext('2d');
 
-    function initCollisionMap() {
+    function initCollisionMap(mapImg) {
       collisionCanvas.width = mapImg.width;
       collisionCanvas.height = mapImg.height;
       collisionCtx.drawImage(mapImg, 0, 0);
     }
 
-    // --- Параметры игрока ---
+    // --- Игрок ---
     const player = {
-      x: 768,       // пока просто центр, потом поставим на дорогу
+      x: 768,
       y: 512,
       size: 60,
-      speed: 140,   // пикселей в секунду
-      vx: 0,
-      vy: 0,
+      speed: 140,
       dir: 'down',
       frame: 0,
       frameTimer: 0,
       frameInterval: 0.12
     };
 
-    // Размер одного кадра спрайта (gypsy.png 3x3)
     let frameW = 0;
     let frameH = 0;
-    playerImg.onload = () => {
-      playerReady = true;
-      frameW = playerImg.width / 3;
-      frameH = playerImg.height / 3;
-    };
 
     // --- Камера ---
     const camera = { x: player.x, y: player.y };
@@ -153,6 +128,28 @@
       vectorY: 0
     };
 
+    // --- Картинки (обработчики до src!) ---
+    const mapImg = new Image();
+    mapImg.onload = () => {
+      mapReady = true;
+      initCollisionMap(mapImg);
+      placePlayerOnRoad();
+    };
+    mapImg.src = 'assets/city-map.png';
+
+    const playerImg = new Image();
+    playerImg.onload = () => {
+      playerReady = true;
+      frameW = playerImg.width / 3;
+      frameH = playerImg.height / 3;
+    };
+    playerImg.src = 'assets/gypsy.png';
+
+    const bottleImg = new Image();
+    bottleImg.onload = () => { bottleReady = true; };
+    bottleImg.src = 'assets/bottle.png';
+
+    // --- Джойстик: управление ---
     function pointerDown(e) {
       const touch = e.touches ? e.touches[0] : e;
       joystick.active = true;
@@ -199,7 +196,7 @@
       }
     }
 
-    function pointerUp(e) {
+    function pointerUp() {
       joystick.active = false;
       joystick.id = null;
       joystick.vectorX = 0;
@@ -213,7 +210,7 @@
     window.addEventListener('mousemove', pointerMove);
     window.addEventListener('mouseup', pointerUp);
 
-    // --- Логика проходимости по цвету карты ---
+    // --- Проверка проходимости (дороги + трава) ---
     function isWalkablePixel(mapX, mapY) {
       if (!mapReady) return false;
       if (mapX < 0 || mapY < 0 || mapX >= mapImg.width || mapY >= mapImg.height) return false;
@@ -228,18 +225,17 @@
         Math.abs(r - b)
       );
 
-      // Светлые дороги (почти белые)
+      // Светлые дороги
       const isRoad =
         brightness > 220 &&
         maxDiff < 25;
 
-      // Зелёная трава / парки: чуть темнее и более зелёные
+      // Зелёная трава / парки
       const isGrass =
         brightness > 150 && brightness < 230 &&
         g >= r - 10 && g >= b &&
         b >= g - 60;
 
-      // Можно будет подправить эти числа, если где-то застревает.
       return isRoad || isGrass;
     }
 
@@ -247,10 +243,10 @@
       const r = player.size * 0.35;
 
       const points = [
-        { x: nx,     y: ny - r }, // вверх
-        { x: nx,     y: ny + r }, // вниз
-        { x: nx - r, y: ny },     // влево
-        { x: nx + r, y: ny }      // вправо
+        { x: nx,     y: ny - r },
+        { x: nx,     y: ny + r },
+        { x: nx - r, y: ny },
+        { x: nx + r, y: ny }
       ];
 
       return points.every(p => isWalkablePixel(p.x, p.y));
@@ -258,10 +254,9 @@
 
     function placePlayerOnRoad() {
       if (!mapReady) return;
-      // ищем ближайшую дорогу около центра карты
+
       let startX = mapImg.width * 0.5;
       let startY = mapImg.height * 0.5;
-
       let found = false;
       const maxRadius = Math.max(mapImg.width, mapImg.height) / 2;
 
@@ -316,15 +311,13 @@
       }
     }
 
-    // --- Таймер ---
+    // --- Таймер / игра ---
     let timeLeft = 30;
     let gameRunning = false;
 
     function resetGame() {
       score = 0;
       timeLeft = 30;
-      player.x = mapImg.width * 0.5;
-      player.y = mapImg.height * 0.5;
       placePlayerOnRoad();
       bottles.length = 0;
       ensureBottles();
@@ -337,13 +330,12 @@
       startButton.style.display = 'none';
     });
 
-    // --- Основной цикл ---
+    // --- Цикл ---
     let lastTime = performance.now();
 
     function update(dt) {
       if (!gameRunning) return;
 
-      // скорость от джойстика
       const vx = joystick.vectorX;
       const vy = joystick.vectorY;
 
@@ -352,14 +344,12 @@
         const nx = player.x + vx * moveSpeed;
         const ny = player.y + vy * moveSpeed;
 
-        // направление (для анимации)
         if (Math.abs(vx) > Math.abs(vy)) {
           player.dir = vx > 0 ? 'right' : 'left';
         } else {
           player.dir = vy > 0 ? 'down' : 'up';
         }
 
-        // сначала по X, потом по Y, чтобы мягко скользить вдоль стен
         if (canMoveTo(nx, player.y)) {
           player.x = nx;
         }
@@ -367,18 +357,15 @@
           player.y = ny;
         }
 
-        // анимация ходьбы
         player.frameTimer += dt;
         if (player.frameTimer >= player.frameInterval) {
           player.frameTimer = 0;
           player.frame = (player.frame + 1) % 3;
         }
       } else {
-        // стоим — первый кадр
-        player.frame = 1;
+        player.frame = 1; // спокойная стойка
       }
 
-      // камера следует
       camera.x = player.x;
       camera.y = player.y;
 
@@ -393,7 +380,6 @@
       }
       ensureBottles();
 
-      // таймер
       timeLeft -= dt;
       if (timeLeft <= 0) {
         timeLeft = 0;
@@ -405,7 +391,6 @@
 
     function drawJoystick() {
       if (!joystick.baseX) {
-        // ставим джойстик по центру снизу, если ещё не трогали
         joystick.baseX = canvas.width / DPR / 2;
         joystick.baseY = canvas.height / DPR * 0.8;
         joystick.curX = joystick.baseX;
@@ -415,13 +400,11 @@
       const baseX = joystick.baseX;
       const baseY = joystick.baseY;
 
-      // внешнее кольцо
       ctx.beginPath();
       ctx.arc(baseX, baseY, joystick.radius, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(0,0,0,0.55)';
       ctx.fill();
 
-      // внутренний круг
       const cx = joystick.active ? joystick.curX : baseX;
       const cy = joystick.active ? joystick.curY : baseY;
       ctx.beginPath();
@@ -438,10 +421,10 @@
     }
 
     function draw() {
-      ctx.clearRect(0, 0, canvas.width / DPR, canvas.height / DPR);
-
       const screenW = canvas.width / DPR;
       const screenH = canvas.height / DPR;
+
+      ctx.clearRect(0, 0, screenW, screenH);
 
       if (mapReady) {
         const mapX = Math.floor(screenW / 2 - camera.x);
@@ -449,7 +432,6 @@
         ctx.drawImage(mapImg, mapX, mapY);
       }
 
-      // бутылки
       if (bottleReady) {
         for (const b of bottles) {
           const screenX = b.x - camera.x + screenW / 2;
@@ -459,7 +441,6 @@
         }
       }
 
-      // игрок
       if (playerReady) {
         const screenX = player.x - camera.x + screenW / 2;
         const screenY = player.y - camera.y + screenH / 2;
@@ -470,7 +451,6 @@
         else if (player.dir === 'left' || player.dir === 'right') row = 2;
 
         let col = player.frame;
-
         let flip = false;
         if (player.dir === 'right') flip = true;
 
@@ -490,10 +470,8 @@
         ctx.restore();
       }
 
-      // джойстик
       drawJoystick();
 
-      // HUD
       hud.textContent = `${Math.ceil(timeLeft)} s 🥂 ${score}`;
     }
 
