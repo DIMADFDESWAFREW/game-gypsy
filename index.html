@@ -2,37 +2,33 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Gypsy Bottle Game – Animated</title>
+  <title>Gypsy Bottle Game — City Map</title>
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
   />
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     html,
     body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      background: #000;
       overflow: hidden;
+      background: #000;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
         sans-serif;
       -webkit-user-select: none;
       user-select: none;
-      overscroll-behavior: none;
       touch-action: none;
     }
 
     #gameWrapper {
-      position: fixed;
-      inset: 0;
-      background: #000;
+      position: relative;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
+      background: #000;
     }
 
     #gameCanvas {
@@ -41,111 +37,102 @@
       width: 100%;
       height: 100%;
       display: block;
+      background: #111;
+      touch-action: none;
     }
 
-    /* HUD */
-
+    /* HUD: таймер + счёт */
     #hud {
       position: absolute;
-      top: 10px;
-      left: 12px;
+      top: 8px;
+      left: 10px;
+      right: 10px;
       z-index: 10;
       display: flex;
-      gap: 18px;
+      justify-content: space-between;
       align-items: center;
-      color: #ffffff;
+      pointer-events: none;
+      color: #fff;
       font-size: 18px;
-      font-weight: 500;
-      text-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
+      text-shadow: 0 0 4px #000;
     }
 
-    #timer,
+    #timer {
+      font-weight: 600;
+    }
+
     #score {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      font-weight: 600;
     }
 
-    #scoreIcon {
-      font-size: 20px;
-    }
-
-    /* Start overlay */
-
+    /* Кнопка старта */
     #startOverlay {
       position: absolute;
       inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 15;
-      pointer-events: auto;
+      flex-direction: column;
+      z-index: 20;
+      background: radial-gradient(circle at center, #222 0, #000 60%);
     }
 
     #startButton {
-      padding: 18px 52px;
+      padding: 16px 40px;
       border-radius: 999px;
       border: none;
-      outline: none;
+      background: linear-gradient(135deg, #ffb739, #ff7f00);
+      color: #fff;
       font-size: 22px;
-      font-weight: 600;
-      color: #ffffff;
-      background: linear-gradient(135deg, #ffb347, #ff8c00);
-      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.9);
-      letter-spacing: 0.02em;
+      font-weight: 700;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
       cursor: pointer;
-      transform: translateY(0);
-      transition:
-        transform 0.12s ease-out,
-        box-shadow 0.12s ease-out,
-        opacity 0.15s ease-out;
     }
 
     #startButton:active {
-      transform: translateY(3px);
-      box-shadow: 0 7px 18px rgba(0, 0, 0, 0.9);
+      transform: translateY(1px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
     }
 
-    /* Joystick */
+    #message {
+      margin-top: 16px;
+      color: #fff;
+      font-size: 16px;
+      text-align: center;
+      max-width: 90%;
+      text-shadow: 0 0 4px #000;
+    }
 
+    /* Джойстик */
     #joystick {
       position: absolute;
-      bottom: 6%;
+      bottom: 28px;
       left: 50%;
       transform: translateX(-50%);
-      width: 46vw;
-      max-width: 260px;
-      aspect-ratio: 1;
+      width: 180px;
+      height: 180px;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #3f3f3f, #101010);
-      box-shadow:
-        0 0 50px rgba(0, 0, 0, 0.9),
-        0 0 0 1px rgba(255, 255, 255, 0.04);
+      background: radial-gradient(circle at center, #444 0, #111 65%, #000 100%);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.9);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 12;
+      z-index: 15;
       touch-action: none;
-      -webkit-touch-callout: none;
     }
 
-    #joystickInner {
-      width: 46%;
-      aspect-ratio: 1;
+    #joystickKnob {
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, #ffe27a, #f6a800);
-      box-shadow:
-        0 0 32px rgba(0, 0, 0, 0.9),
-        0 0 0 3px rgba(0, 0, 0, 0.65);
-      transition: transform 0.06s linear;
-      pointer-events: none;
-      transform: translate3d(0, 0, 0);
+      background: radial-gradient(circle at 30% 30%, #ffd76a 0, #ffb739 35%, #ff8a00 100%);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.9);
+      touch-action: none;
     }
 
-    /* Subtle fade when game inactive */
-
-    .disabledOverlay #startButton {
-      opacity: 0.7;
+    /* Скрываем джойстик, когда игра не идёт */
+    .hidden {
+      display: none !important;
     }
   </style>
 </head>
@@ -154,678 +141,444 @@
     <canvas id="gameCanvas"></canvas>
 
     <div id="hud">
-      <div id="timer">
-        <span id="timeValue">30</span>
-        <span>s</span>
-      </div>
-      <div id="score">
-        <span id="scoreIcon">🍾</span>
-        <span id="scoreValue">0</span>
-      </div>
+      <div id="timer">30 s</div>
+      <div id="score">🍾 0</div>
     </div>
 
     <div id="startOverlay">
       <button id="startButton">Играть 30 сек</button>
+      <div id="message">Собери как можно больше бутылок за 30 секунд</div>
     </div>
 
-    <div id="joystick">
-      <div id="joystickInner"></div>
+    <div id="joystick" class="hidden">
+      <div id="joystickKnob"></div>
     </div>
   </div>
 
   <script>
-    "use strict";
+    // ==== Константы игры ====
+    const GAME_DURATION = 30; // секунд
+    const PLAYER_SPEED = 180; // пикселей в секунду
+    const PLAYER_RADIUS = 26;
+    const BOTTLE_RADIUS = 18;
+    const BOTTLE_COUNT = 10;
+    const FRAME_DURATION = 0.12; // сек на кадр анимации
 
-    // === DOM ===
-
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-
-    const hudTimeEl = document.getElementById("timeValue");
-    const hudScoreEl = document.getElementById("scoreValue");
-    const startOverlay = document.getElementById("startOverlay");
-    const startButton = document.getElementById("startButton");
-    const joystickEl = document.getElementById("joystick");
-    const joystickInnerEl = document.getElementById("joystickInner");
-
-    // === Layout / sizes ===
-
-    let mapRect = { x: 0, y: 0, width: 0, height: 0 };
-
-    function resizeCanvas() {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-
-      canvas.width = w;
-      canvas.height = h;
-
-      updateMapLayout();
-    }
-
-    window.addEventListener("resize", resizeCanvas);
-
-    // === Images / assets ===
-
-    const images = {
-      map: new Image(),
-      player: new Image(),
-      bottle: new Image()
-    };
-
-    let assetsLoaded = 0;
-    let assetsFailed = false;
-    const REQUIRED_ASSETS = 3;
-
-    function handleAssetLoad() {
-      assetsLoaded++;
-      if (assetsLoaded >= REQUIRED_ASSETS && !assetsFailed) {
-        // everything ready, can init game
-        initGameAfterAssets();
-      }
-    }
-
-    function handleAssetError(ev) {
-      console.error("Asset load error:", ev?.target?.src || ev);
-      assetsFailed = true;
-    }
-
-    images.map.onload = handleAssetLoad;
-    images.map.onerror = handleAssetError;
-    images.map.src = "assets/city-map.png";
-
-    images.player.onload = handleAssetLoad;
-    images.player.onerror = handleAssetError;
-    images.player.src = "assets/gypsy.png";
-
-    images.bottle.onload = handleAssetLoad;
-    images.bottle.onerror = handleAssetError;
-    images.bottle.src = "assets/bottle.png";
-
-    // === Game constants ===
-
-    const GAME_DURATION = 30; // seconds
-    const PLAYER_BASE_SPEED = 145; // px / sec
-    const PLAYER_SPRITE_COLS = 3;
-    const PLAYER_SPRITE_ROWS = 3;
-
-    // row mapping: 0 – facing down, 1 – facing left, 2 – facing right
-    // we немного схитрим, т.к. в спрайте не все направления идеальны
+    // спрайт персонажа
+    const SPRITE_COLS = 3;
+    const SPRITE_ROWS = 3;
     const DIR_DOWN = 0;
     const DIR_LEFT = 1;
     const DIR_RIGHT = 2;
-    const DIR_UP = 3; // будет использовать карточки "назад"
+    const DIR_UP = 3; // будем использовать "спину" из верхнего ряда
 
-    const BOTTLE_COUNT = 12;
-    const BOTTLE_RADIUS = 20;
+    // ==== DOM-элементы ====
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-    // === Game state ===
+    const hudTimer = document.getElementById("timer");
+    const hudScore = document.getElementById("score");
+    const startOverlay = document.getElementById("startOverlay");
+    const startButton = document.getElementById("startButton");
+    const messageBox = document.getElementById("message");
+
+    const joystick = document.getElementById("joystick");
+    const joystickKnob = document.getElementById("joystickKnob");
+
+    // ==== Глобальное состояние ====
+    let canvasWidth = 0;
+    let canvasHeight = 0;
+
+    let mapImg = new Image();
+    let bottleImg = new Image();
+    let playerImg = new Image();
+    let obstacleTopImg = new Image();
+    let obstacleBottomImg = new Image();
+
+    let assetsLoaded = 0;
+    const TOTAL_ASSETS = 5;
+
+    let mapReady = false;
+    let worldWidth = 0;
+    let worldHeight = 0;
 
     const player = {
       x: 0,
       y: 0,
-      radius: 26,
-      speed: PLAYER_BASE_SPEED,
       dir: DIR_DOWN,
-      moving: false,
-      frameIndex: 1,
-      frameTime: 0,
-      frameDuration: 0.12, // seconds per frame
-      spriteWidth: 0,
-      spriteHeight: 0
+      frameIndex: 0,
+      frameTimer: 0,
+      frameW: 0,
+      frameH: 0,
     };
 
-    const bottles = [];
+    let bottles = [];
+    let score = 0;
+    let timeLeft = GAME_DURATION;
+    let isRunning = false;
 
-    let gameRunning = false;
-    let gameEverStarted = false;
-    let gameTimeLeft = GAME_DURATION;
-    let gameScore = 0;
-    let timerIntervalId = null;
-    let lastFrameTimestamp = 0;
+    // камера
+    const camera = {
+      x: 0,
+      y: 0,
+    };
 
-    // === Joystick state ===
-
-    const joystick = {
+    // джойстик
+    const joystickState = {
       active: false,
-      startX: 0,
-      startY: 0,
+      centerX: 0,
+      centerY: 0,
       dx: 0,
       dy: 0,
-      maxRadius: 80,
-      deadZone: 8
     };
 
-    // === Helpers ===
-
-    function clamp(value, min, max) {
-      return value < min ? min : value > max ? max : value;
-    }
-
-    function length(dx, dy) {
-      return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    function updateHUD() {
-      hudTimeEl.textContent = String(Math.max(0, Math.floor(gameTimeLeft)));
-      hudScoreEl.textContent = String(gameScore);
-    }
-
-    function showStartOverlay() {
-      startOverlay.style.display = "flex";
-    }
-
-    function hideStartOverlay() {
-      startOverlay.style.display = "flex";
-      // лёгкая хитрость: мы делаем overlay прозрачным,
-      // но не мешающим кликам, чтобы анимации не дёргались
-      startOverlay.style.display = "none";
-    }
-
-    // === Map layout ===
-
-    function updateMapLayout() {
-      const w = canvas.width;
-      const h = canvas.height;
-
-      // доля экрана под джойстик
-      const joystickAreaHeight = h * 0.3;
-
-      const availableHeight = h - joystickAreaHeight;
-      const mapImgAspect =
-        images.map && images.map.width && images.map.height
-          ? images.map.width / images.map.height
-          : 0.75;
-
-      let mapHeight = availableHeight;
-      let mapWidth = mapHeight * mapImgAspect;
-
-      if (mapWidth > w) {
-        const scale = w / mapWidth;
-        mapWidth *= scale;
-        mapHeight *= scale;
+    // ==== Загрузка ассетов ====
+    function assetLoaded() {
+      assetsLoaded++;
+      if (assetsLoaded >= TOTAL_ASSETS) {
+        setupWorld();
       }
-
-      const mapX = (w - mapWidth) / 2;
-      const mapY = 0;
-
-      mapRect.x = mapX;
-      mapRect.y = mapY;
-      mapRect.width = mapWidth;
-      mapRect.height = mapHeight;
     }
 
-    function initGameAfterAssets() {
-      // sprite sizes
-      if (images.player.width && images.player.height) {
-        player.spriteWidth = images.player.width / PLAYER_SPRITE_COLS;
-        player.spriteHeight = images.player.height / PLAYER_SPRITE_ROWS;
-      }
+    mapImg.src = "assets/city-map.png";
+    mapImg.onload = function () {
+      mapReady = true;
+      assetLoaded();
+    };
 
-      resizeCanvas(); // also updates map layout
+    bottleImg.src = "assets/bottle.png";
+    bottleImg.onload = assetLoaded;
 
-      // center player in map
-      player.radius = Math.min(canvas.width, canvas.height) * 0.045;
-      if (player.radius < 18) player.radius = 18;
-      if (player.radius > 40) player.radius = 40;
+    playerImg.src = "assets/gypsy.png";
+    playerImg.onload = function () {
+      player.frameW = playerImg.width / SPRITE_COLS;
+      player.frameH = playerImg.height / SPRITE_ROWS;
+      assetLoaded();
+    };
 
-      player.x = mapRect.x + mapRect.width / 2;
-      player.y = mapRect.y + mapRect.height / 2;
+    obstacleTopImg.src = "assets/obstacle_top.png";
+    obstacleTopImg.onload = assetLoaded;
 
-      spawnInitialBottles();
+    obstacleBottomImg.src = "assets/obstacle_bottom.png";
+    obstacleBottomImg.onload = assetLoaded;
 
+    // ==== Инициализация мира ====
+    function setupWorld() {
+      // размер мира = размер карты
+      worldWidth = mapImg.width;
+      worldHeight = mapImg.height;
+
+      // ставим игрока в центр карты
+      player.x = worldWidth / 2;
+      player.y = worldHeight / 2;
+
+      spawnBottles();
+
+      resizeCanvas();
       updateHUD();
-
-      if (!gameEverStarted) {
-        drawScene(0); // первый рендер
-      }
     }
 
-    function spawnInitialBottles() {
-      bottles.length = 0;
+    function spawnBottles() {
+      bottles = [];
       for (let i = 0; i < BOTTLE_COUNT; i++) {
-        bottles.push(generateBottle());
+        const margin = 80;
+        const x = margin + Math.random() * (worldWidth - margin * 2);
+        const y = margin + Math.random() * (worldHeight - margin * 2);
+        bottles.push({ x, y, collected: false });
       }
     }
 
-    function generateBottle() {
-      const margin = player.radius * 1.4;
+    // ==== Размер canvas ====
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvasWidth = rect.width;
+      canvasHeight = rect.height;
 
-      const bx =
-        mapRect.x +
-        margin +
-        Math.random() * Math.max(10, mapRect.width - margin * 2);
-
-      const by =
-        mapRect.y +
-        margin +
-        Math.random() * Math.max(10, mapRect.height - margin * 2);
-
-      return { x: bx, y: by };
+      // учитываем DPR для чёткости
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = canvasWidth * dpr;
+      canvas.height = canvasHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
-    // === Game control ===
+    window.addEventListener("resize", resizeCanvas);
 
-    function startGame() {
-      if (assetsFailed) {
-        alert("Не удалось загрузить ресурсы игры. Проверьте файлы в папке assets.");
-        return;
-      }
-
-      if (assetsLoaded < REQUIRED_ASSETS) {
-        return;
-      }
-
-      gameRunning = true;
-      gameEverStarted = true;
-      gameTimeLeft = GAME_DURATION;
-      gameScore = 0;
-      updateHUD();
-
-      // переспавним бутылки, чтобы не было повторений
-      spawnInitialBottles();
-
-      if (timerIntervalId !== null) {
-        clearInterval(timerIntervalId);
-        timerIntervalId = null;
-      }
-
-      timerIntervalId = setInterval(() => {
-        gameTimeLeft -= 1;
-        if (gameTimeLeft <= 0) {
-          gameTimeLeft = 0;
-          stopGame();
-        }
-        updateHUD();
-      }, 1000);
-
-      hideStartOverlay();
+    // ==== Управление джойстиком ====
+    function getJoystickRect() {
+      return joystick.getBoundingClientRect();
     }
 
-    function stopGame() {
-      gameRunning = false;
-      joystick.active = false;
-      joystick.dx = 0;
-      joystick.dy = 0;
-      joystickInnerEl.style.transform = "translate3d(0,0,0)";
+    function pointerDown(e) {
+      e.preventDefault();
+      const rect = getJoystickRect();
+      const touch = e.touches ? e.touches[0] : e;
+      const x = touch.clientX;
+      const y = touch.clientY;
 
-      if (timerIntervalId !== null) {
-        clearInterval(timerIntervalId);
-        timerIntervalId = null;
-      }
+      joystickState.active = true;
+      joystickState.centerX = rect.left + rect.width / 2;
+      joystickState.centerY = rect.top + rect.height / 2;
 
-      // небольшой таймаут, чтобы не моргало
-      setTimeout(() => {
-        startOverlay.style.display = "flex";
-      }, 120);
+      updateJoystickVector(x, y);
     }
 
-    // === Joystick handling ===
-
-    function getJoystickCenter() {
-      const rect = joystickEl.getBoundingClientRect();
-      return {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2
-      };
+    function pointerMove(e) {
+      if (!joystickState.active) return;
+      e.preventDefault();
+      const touch = e.touches ? e.touches[0] : e;
+      updateJoystickVector(touch.clientX, touch.clientY);
     }
 
-    function joystickStart(clientX, clientY) {
-      joystick.active = true;
-      const center = getJoystickCenter();
-      joystick.startX = center.x;
-      joystick.startY = center.y;
-      joystickMove(clientX, clientY);
+    function pointerUp(e) {
+      if (!joystickState.active) return;
+      e.preventDefault();
+      joystickState.active = false;
+      joystickState.dx = 0;
+      joystickState.dy = 0;
+      joystickKnob.style.transform = "translate(0px, 0px)";
     }
 
-    function joystickMove(clientX, clientY) {
-      if (!joystick.active) return;
+    function updateJoystickVector(x, y) {
+      const dx = x - joystickState.centerX;
+      const dy = y - joystickState.centerY;
 
-      const dx = clientX - joystick.startX;
-      const dy = clientY - joystick.startY;
-      let dist = length(dx, dy);
-
+      const maxDist = getJoystickRect().width / 2 - 20;
+      let dist = Math.sqrt(dx * dx + dy * dy);
       let nx = 0;
       let ny = 0;
 
-      if (dist > joystick.deadZone) {
-        const maxRadius = joystick.maxRadius;
-        const clamped = Math.min(dist, maxRadius);
-        nx = dx / dist;
-        ny = dy / dist;
+      if (dist > 0) {
+        const k = Math.min(dist, maxDist) / dist;
+        nx = dx * k;
+        ny = dy * k;
+        joystickKnob.style.transform = `translate(${nx}px, ${ny}px)`;
 
-        joystickInnerEl.style.transform =
-          "translate3d(" +
-          nx * clamped +
-          "px," +
-          ny * clamped +
-          "px,0)";
+        // нормализованный вектор [-1,1]
+        joystickState.dx = dx / maxDist;
+        joystickState.dy = dy / maxDist;
+        // ограничиваем по длине
+        const len = Math.sqrt(
+          joystickState.dx * joystickState.dx +
+            joystickState.dy * joystickState.dy
+        );
+        if (len > 1) {
+          joystickState.dx /= len;
+          joystickState.dy /= len;
+        }
       } else {
-        joystickInnerEl.style.transform = "translate3d(0,0,0)";
+        joystickState.dx = 0;
+        joystickState.dy = 0;
       }
-
-      joystick.dx = nx;
-      joystick.dy = ny;
     }
 
-    function joystickEnd() {
-      joystick.active = false;
-      joystick.dx = 0;
-      joystick.dy = 0;
-      joystickInnerEl.style.transform = "translate3d(0,0,0)";
-    }
+    joystick.addEventListener("touchstart", pointerDown, { passive: false });
+    joystick.addEventListener("touchmove", pointerMove, { passive: false });
+    joystick.addEventListener("touchend", pointerUp, { passive: false });
+    joystick.addEventListener("touchcancel", pointerUp, { passive: false });
 
-    const supportsTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+    joystick.addEventListener("mousedown", pointerDown);
+    window.addEventListener("mousemove", pointerMove);
+    window.addEventListener("mouseup", pointerUp);
 
-    if (supportsTouch) {
-      joystickEl.addEventListener(
-        "touchstart",
-        (e) => {
-          if (e.touches.length > 0) {
-            const t = e.touches[0];
-            joystickStart(t.clientX, t.clientY);
-            e.preventDefault();
-          }
-        },
-        { passive: false }
-      );
-
-      joystickEl.addEventListener(
-        "touchmove",
-        (e) => {
-          if (e.touches.length > 0) {
-            const t = e.touches[0];
-            joystickMove(t.clientX, t.clientY);
-            e.preventDefault();
-          }
-        },
-        { passive: false }
-      );
-
-      joystickEl.addEventListener(
-        "touchend",
-        (e) => {
-          joystickEnd();
-          e.preventDefault();
-        },
-        { passive: false }
-      );
-
-      joystickEl.addEventListener(
-        "touchcancel",
-        (e) => {
-          joystickEnd();
-          e.preventDefault();
-        },
-        { passive: false }
-      );
-    } else {
-      joystickEl.addEventListener("mousedown", (e) => {
-        joystickStart(e.clientX, e.clientY);
-      });
-
-      window.addEventListener("mousemove", (e) => {
-        if (!joystick.active) return;
-        joystickMove(e.clientX, e.clientY);
-      });
-
-      window.addEventListener("mouseup", () => {
-        joystickEnd();
-      });
-    }
-
-    // === Input: start button ===
-
-    startButton.addEventListener("click", () => {
-      startGame();
-    });
-
-    // === Game update & drawing ===
-
-    function updatePlayer(dt) {
-      let vx = joystick.dx;
-      let vy = joystick.dy;
-
-      const len = length(vx, vy);
-      if (len < 0.01) {
-        player.moving = false;
-        player.frameTime = 0;
-        // оставляем средний кадр
-        player.frameIndex = 1;
+    // ==== Логика игры ====
+    function startGame() {
+      if (!mapReady || assetsLoaded < TOTAL_ASSETS) {
+        messageBox.textContent = "Ещё загружается, попробуй через секунду…";
         return;
       }
+      isRunning = true;
+      timeLeft = GAME_DURATION;
+      score = 0;
+      spawnBottles();
+      updateHUD();
 
-      vx /= len;
-      vy /= len;
-
-      player.moving = true;
-
-      // направление
-      if (Math.abs(vx) > Math.abs(vy)) {
-        if (vx > 0) {
-          player.dir = DIR_RIGHT;
-        } else {
-          player.dir = DIR_LEFT;
-        }
-      } else {
-        if (vy > 0) {
-          player.dir = DIR_DOWN;
-        } else {
-          player.dir = DIR_UP;
-        }
-      }
-
-      const speed = player.speed;
-      let moveX = vx * speed * dt;
-      let moveY = vy * speed * dt;
-
-      let newX = player.x + moveX;
-      let newY = player.y + moveY;
-
-      const r = player.radius * 0.9;
-
-      const minX = mapRect.x + r;
-      const maxX = mapRect.x + mapRect.width - r;
-      const minY = mapRect.y + r;
-      const maxY = mapRect.y + mapRect.height - r;
-
-      newX = clamp(newX, minX, maxX);
-      newY = clamp(newY, minY, maxY);
-
-      player.x = newX;
-      player.y = newY;
-
-      // анимация кадров
-      player.frameTime += dt;
-      if (player.frameTime >= player.frameDuration) {
-        player.frameTime = 0;
-        player.frameIndex = (player.frameIndex + 1) % PLAYER_SPRITE_COLS;
-      }
+      startOverlay.classList.add("hidden");
+      joystick.classList.remove("hidden");
     }
 
-    function updateBottles() {
-      const pr = player.radius * 0.85;
-      const collectDist = pr + BOTTLE_RADIUS;
+    function endGame() {
+      isRunning = false;
+      joystick.classList.add("hidden");
+      startOverlay.classList.remove("hidden");
+      messageBox.textContent = `Время вышло! Ты собрал ${score} бутылок 🍾`;
+    }
 
-      for (let i = 0; i < bottles.length; i++) {
-        const b = bottles[i];
-        const dx = b.x - player.x;
-        const dy = b.y - player.y;
-        const dist = length(dx, dy);
+    function updateHUD() {
+      hudTimer.textContent = `${Math.ceil(timeLeft)} s`;
+      hudScore.textContent = `🍾 ${score}`;
+    }
 
-        if (dist < collectDist) {
-          gameScore += 1;
+    startButton.addEventListener("click", startGame);
+
+    // ==== Игровой цикл ====
+    let lastTs = 0;
+
+    function loop(ts) {
+      if (!lastTs) lastTs = ts;
+      const dt = (ts - lastTs) / 1000;
+      lastTs = ts;
+
+      update(dt);
+      draw();
+
+      requestAnimationFrame(loop);
+    }
+
+    function update(dt) {
+      if (!mapReady || assetsLoaded < TOTAL_ASSETS) return;
+
+      if (isRunning) {
+        timeLeft -= dt;
+        if (timeLeft <= 0) {
+          timeLeft = 0;
           updateHUD();
-          bottles[i] = generateBottle();
+          endGame();
+          return;
         }
-      }
-    }
 
-    function updateGame(dt) {
-      if (!gameRunning) return;
+        const moveX = joystickState.dx;
+        const moveY = joystickState.dy;
+        const len = Math.sqrt(moveX * moveX + moveY * moveY);
 
-      updatePlayer(dt);
-      updateBottles();
-    }
+        if (len > 0.05) {
+          const vx = (moveX / len) * PLAYER_SPEED;
+          const vy = (moveY / len) * PLAYER_SPEED;
 
-    function drawMap() {
-      if (images.map && images.map.complete && images.map.naturalWidth > 0) {
-        ctx.drawImage(
-          images.map,
-          0,
-          0,
-          images.map.width,
-          images.map.height,
-          mapRect.x,
-          mapRect.y,
-          mapRect.width,
-          mapRect.height
-        );
-      } else {
-        ctx.fillStyle = "#303030";
-        ctx.fillRect(mapRect.x, mapRect.y, mapRect.width, mapRect.height);
-      }
-    }
+          player.x += vx * dt;
+          player.y += vy * dt;
 
-    function drawBottles() {
-      for (let i = 0; i < bottles.length; i++) {
-        const b = bottles[i];
-        const size = BOTTLE_RADIUS * 2;
+          // не выходим за пределы карты
+          player.x = Math.max(PLAYER_RADIUS, Math.min(worldWidth - PLAYER_RADIUS, player.x));
+          player.y = Math.max(PLAYER_RADIUS, Math.min(worldHeight - PLAYER_RADIUS, player.y));
 
-        if (
-          images.bottle &&
-          images.bottle.complete &&
-          images.bottle.naturalWidth > 0
-        ) {
-          ctx.drawImage(
-            images.bottle,
-            b.x - BOTTLE_RADIUS,
-            b.y - BOTTLE_RADIUS,
-            size,
-            size
-          );
+          // направление для анимации
+          const angle = Math.atan2(vy, vx); // -PI..PI
+          if (Math.abs(vx) > Math.abs(vy)) {
+            player.dir = vx > 0 ? DIR_RIGHT : DIR_LEFT;
+          } else {
+            player.dir = vy > 0 ? DIR_DOWN : DIR_UP;
+          }
+
+          // обновляем анимацию
+          player.frameTimer += dt;
+          if (player.frameTimer >= FRAME_DURATION) {
+            player.frameTimer = 0;
+            player.frameIndex = (player.frameIndex + 1) % SPRITE_COLS;
+          }
         } else {
-          ctx.fillStyle = "#8ccfff";
-          ctx.beginPath();
-          ctx.arc(b.x, b.y, BOTTLE_RADIUS, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-    }
-
-    function drawPlayer() {
-      const px = player.x;
-      const py = player.y;
-      const r = player.radius;
-
-      const img = images.player;
-
-      if (
-        img &&
-        img.complete &&
-        img.naturalWidth > 0 &&
-        player.spriteWidth > 0 &&
-        player.spriteHeight > 0
-      ) {
-        let rowIndex = 0;
-        switch (player.dir) {
-          case DIR_DOWN:
-            rowIndex = 0;
-            break;
-          case DIR_LEFT:
-            rowIndex = 2; // чуть наискось
-            break;
-          case DIR_RIGHT:
-            rowIndex = 2;
-            break;
-          case DIR_UP:
-            rowIndex = 1; // вид со спины
-            break;
-          default:
-            rowIndex = 0;
+          // стоим — первый кадр
+          player.frameIndex = 0;
+          player.frameTimer = 0;
         }
 
-        const frame = clamp(
-          player.frameIndex,
-          0,
-          PLAYER_SPRITE_COLS - 1
-        );
+        // столкновения с бутылками
+        for (const b of bottles) {
+          if (b.collected) continue;
+          const dx = b.x - player.x;
+          const dy = b.y - player.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < PLAYER_RADIUS + BOTTLE_RADIUS) {
+            b.collected = true;
+            score++;
+            updateHUD();
+          }
+        }
 
-        const sx = frame * player.spriteWidth;
-        const sy = rowIndex * player.spriteHeight;
-        const sw = player.spriteWidth;
-        const sh = player.spriteHeight;
-
-        const dw = r * 2;
-        const dh = r * 2.2; // чуть вытянут по вертикали
-
-        ctx.save();
-        ctx.translate(px, py);
-        ctx.drawImage(img, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh);
-        ctx.restore();
-      } else {
-        // fallback – круг, если спрайт не загрузился
-        ctx.fillStyle = "#ffd54f";
-        ctx.beginPath();
-        ctx.arc(px, py, r, 0, Math.PI * 2);
-        ctx.fill();
+        updateHUD();
       }
+
+      // камера следует за игроком
+      const halfW = canvasWidth / 2;
+      const halfH = canvasHeight / 2;
+      camera.x = player.x - halfW;
+      camera.y = player.y - halfH;
+
+      // ограничиваем камеру границами мира
+      camera.x = Math.max(0, Math.min(worldWidth - canvasWidth, camera.x));
+      camera.y = Math.max(0, Math.min(worldHeight - canvasHeight, camera.y));
     }
 
-    function drawScene(dt) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    function draw() {
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-      if (assetsFailed) {
-        ctx.fillStyle = "#111";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#ff6666";
-        ctx.font = "18px system-ui";
+      if (!mapReady || assetsLoaded < TOTAL_ASSETS) {
+        ctx.fillStyle = "#fff";
+        ctx.font = "16px system-ui";
         ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(
-          "Ошибка загрузки ресурсов игры",
-          canvas.width / 2,
-          canvas.height / 2
-        );
+        ctx.fillText("Загрузка…", canvasWidth / 2, canvasHeight / 2);
         return;
       }
 
-      if (assetsLoaded < REQUIRED_ASSETS) {
-        ctx.fillStyle = "#111";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "18px system-ui";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(
-          "Загрузка...",
-          canvas.width / 2,
-          canvas.height / 2
+      // рисуем карту с учётом камеры
+      ctx.drawImage(
+        mapImg,
+        camera.x,
+        camera.y,
+        canvasWidth,
+        canvasHeight,
+        0,
+        0,
+        canvasWidth,
+        canvasHeight
+      );
+
+      // бутылки
+      for (const b of bottles) {
+        if (b.collected) continue;
+        const screenX = b.x - camera.x;
+        const screenY = b.y - camera.y;
+        ctx.drawImage(
+          bottleImg,
+          screenX - BOTTLE_RADIUS,
+          screenY - BOTTLE_RADIUS,
+          BOTTLE_RADIUS * 2,
+          BOTTLE_RADIUS * 2
         );
-        return;
       }
 
-      drawMap();
-      drawBottles();
-      drawPlayer();
+      // персонаж
+      const screenPX = player.x - camera.x;
+      const screenPY = player.y - camera.y;
+
+      let row;
+      switch (player.dir) {
+        case DIR_LEFT:
+          row = 1;
+          break;
+        case DIR_RIGHT:
+          row = 2;
+          break;
+        case DIR_UP:
+          row = 0; // используем верхний ряд как "спину"
+          break;
+        case DIR_DOWN:
+        default:
+          row = 0;
+          break;
+      }
+
+      const sx = player.frameIndex * player.frameW;
+      const sy = row * player.frameH;
+
+      const drawW = PLAYER_RADIUS * 2.2;
+      const drawH = (player.frameH / player.frameW) * drawW;
+
+      ctx.drawImage(
+        playerImg,
+        sx,
+        sy,
+        player.frameW,
+        player.frameH,
+        screenPX - drawW / 2,
+        screenPY - drawH + PLAYER_RADIUS, // центр по ногам
+        drawW,
+        drawH
+      );
     }
 
-    function gameLoop(timestamp) {
-      if (!lastFrameTimestamp) lastFrameTimestamp = timestamp;
-      const dt = (timestamp - lastFrameTimestamp) / 1000;
-      lastFrameTimestamp = timestamp;
-
-      updateGame(dt);
-      drawScene(dt);
-
-      requestAnimationFrame(gameLoop);
-    }
-
-    // === Init ===
-
+    // ==== Старт ====
     resizeCanvas();
-    updateHUD();
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>
