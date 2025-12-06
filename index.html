@@ -180,20 +180,23 @@
     const joyBase  = document.getElementById('joystickBase');
     const joyKnob  = document.getElementById('joystickKnob');
 
+    // 🔥 Абсолютные пути к ассетам GitHub Pages
+    const baseUrl = 'https://dimadfdeswafrew.github.io/game-gypsy';
+
     const mapImg = new Image();
-    mapImg.src = 'assets/city-map.png';
+    mapImg.src = baseUrl + '/assets/city-map.png';
 
     const playerImg = new Image();
-    playerImg.src = 'assets/gypsy.png';
+    playerImg.src = baseUrl + '/assets/gypsy.png';
 
     const bottleImg = new Image();
-    bottleImg.src = 'assets/bottle.png';
+    bottleImg.src = baseUrl + '/assets/bottle.png';
 
     const obstacleTopImg = new Image();
-    obstacleTopImg.src = 'assets/obstacle_top.png';
+    obstacleTopImg.src = baseUrl + '/assets/obstacle_top.png';
 
     const obstacleBottomImg = new Image();
-    obstacleBottomImg.src = 'assets/obstacle_bottom.png';
+    obstacleBottomImg.src = baseUrl + '/assets/obstacle_bottom.png';
 
     const GAME_TIME = 30;
 
@@ -556,6 +559,7 @@
       ctx.scale(scale, scale);
       ctx.translate(-viewX, -viewY);
 
+      // карта или зелёный фон
       if (mapImg.complete && mapImg.naturalWidth) {
         ctx.drawImage(mapImg, 0, 0, 2700, 2700);
       } else {
@@ -563,6 +567,7 @@
         ctx.fillRect(0, 0, 2700, 2700);
       }
 
+      // бутылки
       for (const b of bottles) {
         if (bottleImg.complete && bottleImg.naturalWidth) {
           const s = b.size;
@@ -580,6 +585,7 @@
         }
       }
 
+      // препятствия
       for (const ob of obstacles) {
         let img = null;
         if (ob.type === 'top') img = obstacleTopImg;
@@ -593,6 +599,7 @@
         }
       }
 
+      // игрок
       if (playerImg.complete && playerImg.naturalWidth) {
         if (!sprite.frameW || !sprite.frameH) {
           sprite.frameW = playerImg.naturalWidth / sprite.cols;
