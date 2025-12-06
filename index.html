@@ -2,18 +2,27 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Gypsy Bottle Game – Animated</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Gypsy Bottle Game</title>
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"
+  />
+
   <style>
-    html, body {
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    html,
+    body {
       width: 100%;
       height: 100%;
       overflow: hidden;
       background: #000;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      touch-action: none;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
       -webkit-user-select: none;
       user-select: none;
     }
@@ -22,96 +31,81 @@
       position: relative;
       width: 100vw;
       height: 100vh;
-      overflow: hidden;
       background: #000;
+      overflow: hidden;
     }
 
     #gameCanvas {
       width: 100%;
       height: 100%;
       display: block;
-      background: #222;
+      background: #262626;
       touch-action: none;
     }
 
     #hud {
       position: absolute;
-      top: 8px;
-      left: 10px;
-      z-index: 5;
-      color: #fff;
-      font-size: 20px;
-      text-shadow: 0 0 5px #000;
+      top: 10px;
+      left: 12px;
+      right: 12px;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 10px;
-    }
-
-    #time {
-      font-weight: 600;
-    }
-
-    #score {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    #scoreIcon {
-      font-size: 20px;
-    }
-
-    #centerMessage {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 6;
-      text-align: center;
       color: #fff;
-      pointer-events: none;
       font-size: 18px;
-      text-shadow: 0 0 6px rgba(0,0,0,0.8);
+      font-weight: 500;
+      z-index: 5;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
     }
 
     #startBtn {
       position: absolute;
-      top: 50%;
       left: 50%;
+      top: 50%;
       transform: translate(-50%, -50%);
-      z-index: 7;
-      padding: 18px 48px;
+      padding: 14px 32px;
       border-radius: 999px;
       border: none;
       font-size: 20px;
       font-weight: 600;
-      background: linear-gradient(135deg, #ffb347, #ff8c00);
       color: #fff;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.55);
+      background: linear-gradient(135deg, #ffb12a, #ff7a00);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
       cursor: pointer;
-      letter-spacing: 0.03em;
-      touch-action: manipulation;
+      z-index: 6;
     }
 
     #startBtn:active {
       transform: translate(-50%, -50%) scale(0.97);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.7);
+    }
+
+    #centerMessage {
+      position: absolute;
+      left: 50%;
+      top: 36%;
+      transform: translateX(-50%);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 600;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+      z-index: 5;
+      pointer-events: none;
     }
 
     #joystickBase {
       position: absolute;
-      bottom: 8vh;
       left: 50%;
+      bottom: 26px;
       transform: translateX(-50%);
-      width: min(42vw, 260px);
-      aspect-ratio: 1 / 1;
+      width: 210px;
+      height: 210px;
       border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #555, #000);
-      box-shadow:
-        0 0 0 10px rgba(0,0,0,0.45),
-        0 18px 36px rgba(0,0,0,0.85),
-        inset 0 4px 12px rgba(255,255,255,0.06);
-      z-index: 10;
+      background: radial-gradient(circle at 30% 30%, #222, #000);
+      border: 3px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 0 16px rgba(0, 0, 0, 0.85);
+      z-index: 6;
       touch-action: none;
     }
 
@@ -119,40 +113,27 @@
       position: absolute;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, -50%);
-      width: 52%;
-      height: 52%;
+      width: 112px;
+      height: 112px;
       border-radius: 50%;
-      background: radial-gradient(circle at 30% 25%, #ffd95e, #ff9f1a);
-      box-shadow:
-        0 8px 16px rgba(0,0,0,0.6),
-        inset 0 -4px 10px rgba(0,0,0,0.55),
-        inset 0 6px 12px rgba(255,255,255,0.18);
-      touch-action: none;
-    }
-
-    @media (min-aspect-ratio: 3/4) {
-      #joystickBase {
-        bottom: 5vh;
-      }
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle at 30% 30%, #ffd86a, #ff9b00);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
     }
   </style>
 </head>
+
 <body>
   <div id="gameWrapper">
     <canvas id="gameCanvas"></canvas>
 
     <div id="hud">
-      <span id="time">30 s</span>
-      <div id="score">
-        <span id="scoreIcon">🍾</span>
-        <span id="scoreValue">0</span>
-      </div>
+      <span><span id="time">30</span> s</span>
+      <span>🍾 <span id="score">0</span></span>
     </div>
 
-    <div id="centerMessage"></div>
-
     <button id="startBtn">Играть 30 сек</button>
+    <div id="centerMessage"></div>
 
     <div id="joystickBase">
       <div id="joystickKnob"></div>
@@ -160,479 +141,321 @@
   </div>
 
   <script>
-    const canvas = document.getElementById('gameCanvas');
-    const ctx     = canvas.getContext('2d');
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
     function resize() {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width  = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     }
-    window.addEventListener('resize', resize);
+    window.addEventListener("resize", resize);
     resize();
 
-    const timeEl   = document.getElementById('time');
-    const scoreEl  = document.getElementById('scoreValue');
-    const startBtn = document.getElementById('startBtn');
-    const centerMessage = document.getElementById('centerMessage');
-    const joyBase  = document.getElementById('joystickBase');
-    const joyKnob  = document.getElementById('joystickKnob');
+    const timeEl = document.getElementById("time");
+    const scoreEl = document.getElementById("score");
+    const startBtn = document.getElementById("startBtn");
+    const centerMessage = document.getElementById("centerMessage");
 
-    // 🔥 Абсолютные пути к ассетам GitHub Pages
-    const baseUrl = 'https://dimadfdeswafrew.github.io/game-gypsy';
+    const joystickBase = document.getElementById("joystickBase");
+    const joystickKnob = document.getElementById("joystickKnob");
 
     const mapImg = new Image();
-    mapImg.src = baseUrl + '/assets/city-map.png';
+    mapImg.src = "assets/city-map.png";
 
     const playerImg = new Image();
-    playerImg.src = baseUrl + '/assets/gypsy.png';
+    playerImg.src = "assets/gypsy.png";
 
     const bottleImg = new Image();
-    bottleImg.src = baseUrl + '/assets/bottle.png';
+    bottleImg.src = "assets/bottle.png";
 
-    const obstacleTopImg = new Image();
-    obstacleTopImg.src = baseUrl + '/assets/obstacle_top.png';
+    let assetsReady = false;
+    let loadedCount = 0;
+    [mapImg, playerImg, bottleImg].forEach((img) => {
+      img.addEventListener("load", () => {
+        loadedCount++;
+        if (loadedCount === 3) {
+          assetsReady = true;
+        }
+      });
+    });
 
-    const obstacleBottomImg = new Image();
-    obstacleBottomImg.src = baseUrl + '/assets/obstacle_bottom.png';
+    const FRAME_W = 64;
+    const FRAME_H = 64;
+    const COLS = 3;
 
-    const GAME_TIME = 30;
+    const DIR_DOWN = 0;
+    const DIR_LEFT = 1;
+    const DIR_RIGHT = 2;
+    const DIR_UP = 3;
 
     const player = {
       x: 0,
       y: 0,
-      size: 64,
-      speed: 260,
-      dir: 0,
-      vx: 0,
-      vy: 0,
-      isMoving: false,
-      frame: 0,
-      frameTime: 0,
-      frameDuration: 0.12
+      size: 80,
+      speed: 180,
+      dir: DIR_DOWN,
+      frame: 1,
+      frameTimer: 0,
+      frameInterval: 0.12,
     };
 
-    const sprite = {
-      cols: 3,
-      rows: 4,
-      frameW: 0,
-      frameH: 0
-    };
+    const bottles = [];
+    const bottleRadius = 26;
 
-    let bottles = [];
-    let obstacles = [];
-    let timeLeft = GAME_TIME;
-    let score    = 0;
-    let running  = false;
-    let lastTs   = 0;
+    let gameRunning = false;
+    let remaining = 30;
+    let score = 0;
 
-    function createObstacles() {
-      obstacles = [];
+    let lastTs = 0;
 
-      const w = 2700;
-      const h = 2700;
-      const roadW = 260;
-      const mapCenterX = w / 2;
-      const mapCenterY = h / 2;
+    const JOY_MAX = 70;
+    const JOY_DEAD = 6;
+    let joyActive = false;
+    let joyId = null;
+    let joyDX = 0;
+    let joyDY = 0;
 
-      obstacles.push({
-        type: 'top',
-        x: 0,
-        y: 0,
-        width: w,
-        height: (h - roadW) / 2,
-      });
+    function setJoystickFromEvent(e) {
+      const rect = joystickBase.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const x = e.clientX - cx;
+      const y = e.clientY - cy;
 
-      obstacles.push({
-        type: 'bottom',
-        x: 0,
-        y: (h + roadW) / 2,
-        width: w,
-        height: (h - roadW) / 2,
-      });
-
-      const houseW = 260;
-      const houseH = 260;
-
-      obstacles.push({
-        type: 'middle',
-        x: mapCenterX - houseW / 2,
-        y: 0,
-        width: houseW,
-        height: (h - roadW) / 2,
-      });
-
-      obstacles.push({
-        type: 'middle',
-        x: mapCenterX - houseW / 2,
-        y: (h + roadW) / 2,
-        width: houseW,
-        height: (h - roadW) / 2,
-      });
-
-      obstacles.push({
-        type: 'middle',
-        x: mapCenterX - roadW / 2 - houseW,
-        y: mapCenterY - houseH / 2,
-        width: houseW,
-        height: houseH,
-      });
-
-      obstacles.push({
-        type: 'middle',
-        x: mapCenterX + roadW / 2,
-        y: mapCenterY - houseH / 2,
-        width: houseW,
-        height: houseH,
-      });
-    }
-
-    function rectsOverlap(a, b) {
-      return (
-        a.x < b.x + b.width &&
-        a.x + a.width > b.x &&
-        a.y < b.y + b.height &&
-        a.y + a.height > b.y
-      );
-    }
-
-    function spawnBottles() {
-      bottles = [];
-      const w = 2700;
-      const h = 2700;
-
-      const roadRect = {
-        x: w / 2 - 200,
-        y: 0,
-        width: 400,
-        height: h,
-      };
-
-      function randomPoint() {
-        const x = Math.random() * (roadRect.width - 80) + roadRect.x + 40;
-        const y = Math.random() * (roadRect.height - 80) + roadRect.y + 40;
-        return { x, y };
+      const dist = Math.hypot(x, y);
+      if (dist < JOY_DEAD) {
+        joyDX = 0;
+        joyDY = 0;
+        joystickKnob.style.transform = "translate(-50%, -50%)";
+        return;
       }
 
-      const count = 18;
+      const clamped = Math.min(dist, JOY_MAX);
+      const nx = x / dist;
+      const ny = y / dist;
 
-      for (let i = 0; i < count; i++) {
-        const p = randomPoint();
-        bottles.push({
-          x: p.x,
-          y: p.y,
-          size: 52,
-        });
-      }
+      joyDX = nx;
+      joyDY = ny;
+
+      const knobOffset = (clamped / JOY_MAX) * 55;
+      joystickKnob.style.transform = `translate(calc(-50% + ${
+        nx * knobOffset
+      }px), calc(-50% + ${ny * knobOffset}px))`;
     }
+
+    joystickBase.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      joyActive = true;
+      joyId = e.pointerId;
+      joystickBase.setPointerCapture(joyId);
+      setJoystickFromEvent(e);
+    });
+
+    joystickBase.addEventListener("pointermove", (e) => {
+      if (!joyActive || e.pointerId !== joyId) return;
+      e.preventDefault();
+      setJoystickFromEvent(e);
+    });
+
+    joystickBase.addEventListener("pointerup", (e) => {
+      if (e.pointerId !== joyId) return;
+      joyActive = false;
+      joyId = null;
+      joyDX = 0;
+      joyDY = 0;
+      joystickKnob.style.transform = "translate(-50%, -50%)";
+    });
+
+    joystickBase.addEventListener("pointercancel", (e) => {
+      if (e.pointerId !== joyId) return;
+      joyActive = false;
+      joyId = null;
+      joyDX = 0;
+      joyDY = 0;
+      joystickKnob.style.transform = "translate(-50%, -50%)";
+    });
 
     function resetPlayer() {
-      player.size = 64;
-      player.x = 2700 / 2;
-      player.y = 2700 / 2 + 260;
-      player.vx = 0;
-      player.vy = 0;
-      player.dir = 0;
-      player.isMoving = false;
+      player.x = canvas.width / 2;
+      player.y = canvas.height / 2;
+      player.dir = DIR_DOWN;
       player.frame = 1;
-      player.frameTime = 0;
+      player.frameTimer = 0;
     }
 
-    let joyActive = false;
-    let joyCenter = { x: 0, y: 0 };
-    let joyRadius = 0;
-
-    function updateJoyLayout() {
-      const rect = joyBase.getBoundingClientRect();
-      joyCenter.x = rect.left + rect.width / 2;
-      joyCenter.y = rect.top + rect.height / 2;
-      joyRadius = rect.width * 0.5 * 0.7;
+    function randomBottlePosition() {
+      const padding = 40;
+      return {
+        x: padding + Math.random() * (canvas.width - padding * 2),
+        y: padding + Math.random() * (canvas.height - padding * 2 - 140),
+      };
     }
 
-    updateJoyLayout();
-    window.addEventListener('resize', updateJoyLayout);
-
-    function joyStart(x, y) {
-      joyActive = true;
-      joyMove(x, y);
-    }
-
-    function joyMove(x, y) {
-      if (!joyActive) return;
-      const dx = x - joyCenter.x;
-      const dy = y - joyCenter.y;
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-
-      const clamped = Math.min(dist, joyRadius);
-      const nx = (dx / dist) * clamped;
-      const ny = (dy / dist) * clamped;
-
-      joyKnob.style.transform =
-        `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
-
-      const vx = dx / dist;
-      const vy = dy / dist;
-
-      const len = Math.sqrt(vx * vx + vy * vy);
-      if (len > 0.2) {
-        const k = 1 / len;
-        player.vx = vx * k;
-        player.vy = vy * k;
-        player.isMoving = true;
-
-        if (Math.abs(vx) > Math.abs(vy)) {
-          player.dir = vx > 0 ? 1 : 2;
-        } else {
-          player.dir = vy > 0 ? 0 : 3;
-        }
-      } else {
-        player.vx = 0;
-        player.vy = 0;
-        player.isMoving = false;
+    function spawnInitialBottles() {
+      bottles.length = 0;
+      const count = 10;
+      for (let i = 0; i < count; i++) {
+        bottles.push(randomBottlePosition());
       }
     }
-
-    function joyEnd() {
-      joyActive = false;
-      player.vx = 0;
-      player.vy = 0;
-      player.isMoving = false;
-      joyKnob.style.transform = 'translate(-50%, -50%)';
-    }
-
-    joyBase.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      const t = e.changedTouches[0];
-      joyStart(t.clientX, t.clientY);
-    });
-
-    joyBase.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-      const t = e.changedTouches[0];
-      joyMove(t.clientX, t.clientY);
-    });
-
-    joyBase.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      joyEnd();
-    });
-
-    joyBase.addEventListener('mousedown', (e) => {
-      e.preventDefault();
-      joyStart(e.clientX, e.clientY);
-    });
-
-    window.addEventListener('mousemove', (e) => {
-      if (!joyActive) return;
-      e.preventDefault();
-      joyMove(e.clientX, e.clientY);
-    });
-
-    window.addEventListener('mouseup', (e) => {
-      if (!joyActive) return;
-      e.preventDefault();
-      joyEnd();
-    });
 
     function startGame() {
-      timeLeft = GAME_TIME;
+      if (!assetsReady) return;
+
+      gameRunning = true;
+      remaining = 30;
       score = 0;
-      scoreEl.textContent = score;
-      running = true;
-      centerMessage.textContent = '';
-      startBtn.style.display = 'none';
+      lastTs = 0;
 
       resetPlayer();
-      spawnBottles();
+      spawnInitialBottles();
+
+      timeEl.textContent = remaining.toString();
+      scoreEl.textContent = "0";
+      centerMessage.textContent = "";
+      startBtn.style.display = "none";
     }
 
-    startBtn.addEventListener('click', startGame);
+    startBtn.addEventListener("click", startGame);
 
     function update(dt) {
-      if (!running) return;
+      if (!gameRunning) return;
 
-      timeLeft -= dt;
-      if (timeLeft <= 0) {
-        timeLeft = 0;
-        running = false;
-        centerMessage.textContent = `Время вышло! Собрано: ${score}`;
-        startBtn.style.display = 'block';
+      remaining -= dt;
+      if (remaining <= 0) {
+        remaining = 0;
+        gameRunning = false;
+        centerMessage.textContent = `Время вышло! Ты собрал ${score} 🍾`;
+        startBtn.textContent = "Играть ещё раз";
+        startBtn.style.display = "block";
       }
+      timeEl.textContent = Math.ceil(remaining).toString();
 
-      timeEl.textContent = `${Math.ceil(timeLeft)} s`;
-      let vx = player.vx * player.speed * dt;
-      let vy = player.vy * player.speed * dt;
+      const moving = Math.abs(joyDX) + Math.abs(joyDY) > 0.01;
 
-      const half = player.size / 2;
+      if (moving) {
+        const len = Math.hypot(joyDX, joyDY) || 1;
+        const vx = (joyDX / len) * player.speed;
+        const vy = (joyDY / len) * player.speed;
 
-      const newRect = {
-        x: player.x - half + vx,
-        y: player.y - half + vy,
-        width: player.size,
-        height: player.size,
-      };
+        player.x += vx * dt;
+        player.y += vy * dt;
 
-      for (const ob of obstacles) {
-        const obRect = {
-          x: ob.x,
-          y: ob.y,
-          width: ob.width,
-          height: ob.height,
-        };
-
-        if (rectsOverlap(newRect, obRect)) {
-          vx = 0;
-          vy = 0;
-          break;
+        const angle = Math.atan2(vy, vx);
+        if (Math.abs(angle) < Math.PI / 4) {
+          player.dir = DIR_RIGHT;
+        } else if (Math.abs(angle) > (3 * Math.PI) / 4) {
+          player.dir = DIR_LEFT;
+        } else if (angle < 0) {
+          player.dir = DIR_UP;
+        } else {
+          player.dir = DIR_DOWN;
         }
-      }
 
-      player.x += vx;
-      player.y += vy;
-
-      player.x = Math.max(half, Math.min(2700 - half, player.x));
-      player.y = Math.max(half, Math.min(2700 - half, player.y));
-
-      if (player.isMoving && (player.vx !== 0 || player.vy !== 0)) {
-        player.frameTime += dt;
-        if (player.frameTime >= player.frameDuration) {
-          player.frameTime -= player.frameDuration;
-          player.frame = (player.frame + 1) % sprite.cols;
+        player.frameTimer += dt;
+        if (player.frameTimer >= player.frameInterval) {
+          player.frameTimer = 0;
+          player.frame = (player.frame + 1) % 3;
         }
       } else {
         player.frame = 1;
-        player.frameTime = 0;
+        player.frameTimer = 0;
       }
 
-      const collectRadius = 42;
+      const half = player.size / 2;
+      if (player.x < half) player.x = half;
+      if (player.x > canvas.width - half) player.x = canvas.width - half;
+      if (player.y < half) player.y = half;
+      if (player.y > canvas.height - half) player.y = canvas.height - half;
 
-      bottles = bottles.filter(b => {
+      for (let i = bottles.length - 1; i >= 0; i--) {
+        const b = bottles[i];
         const dx = b.x - player.x;
         const dy = b.y - player.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < collectRadius) {
+        const dist = Math.hypot(dx, dy);
+        if (dist < bottleRadius + half * 0.6) {
+          bottles.splice(i, 1);
           score++;
-          scoreEl.textContent = score;
-          return false;
+          scoreEl.textContent = score.toString();
         }
-        return true;
-      });
+      }
 
-      if (bottles.length < 8) {
-        spawnBottles();
+      while (bottles.length < 10) {
+        bottles.push(randomBottlePosition());
       }
     }
 
-    function draw() {
-      const w = canvas.width;
-      const h = canvas.height;
+    function drawBackground() {
+      if (mapImg.complete && mapImg.naturalWidth > 0) {
+        const sw = mapImg.naturalWidth;
+        const sh = mapImg.naturalHeight;
+        const scale = Math.max(
+          canvas.width / sw,
+          canvas.height / sh
+        );
 
-      ctx.clearRect(0, 0, w, h);
+        const dw = sw * scale;
+        const dh = sh * scale;
+        const dx = (canvas.width - dw) / 2;
+        const dy = (canvas.height - dh) / 2;
 
-      const scale = Math.min(w / 2700, h / 2700);
-      const viewW = w / scale;
-      const viewH = h / scale;
-
-      const halfViewW = viewW / 2;
-      const halfViewH = viewH / 2;
-
-      let camX = player.x;
-      let camY = player.y;
-
-      const margin = 220;
-      if (camX < margin) camX = margin;
-      if (camY < margin) camY = margin;
-      if (camX > 2700 - margin) camX = 2700 - margin;
-      if (camY > 2700 - margin) camY = 2700 - margin;
-
-      let viewX = camX - halfViewW;
-      let viewY = camY - halfViewH;
-
-      if (viewX < 0) viewX = 0;
-      if (viewY < 0) viewY = 0;
-      if (viewX + viewW > 2700) viewX = 2700 - viewW;
-      if (viewY + viewH > 2700) viewY = 2700 - viewH;
-
-      ctx.save();
-      ctx.scale(scale, scale);
-      ctx.translate(-viewX, -viewY);
-
-      // карта или зелёный фон
-      if (mapImg.complete && mapImg.naturalWidth) {
-        ctx.drawImage(mapImg, 0, 0, 2700, 2700);
+        ctx.drawImage(mapImg, 0, 0, sw, sh, dx, dy, dw, dh);
       } else {
-        ctx.fillStyle = '#3c6';
-        ctx.fillRect(0, 0, 2700, 2700);
+        ctx.fillStyle = "#333";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
       }
+    }
 
-      // бутылки
-      for (const b of bottles) {
-        if (bottleImg.complete && bottleImg.naturalWidth) {
-          const s = b.size;
-          ctx.drawImage(
-            bottleImg,
-            b.x - s / 2,
-            b.y - s / 2,
-            s, s
-          );
-        } else {
-          ctx.fillStyle = '#fff';
-          ctx.beginPath();
-          ctx.arc(b.x, b.y, b.size / 2, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      // препятствия
-      for (const ob of obstacles) {
-        let img = null;
-        if (ob.type === 'top') img = obstacleTopImg;
-        else if (ob.type === 'bottom') img = obstacleBottomImg;
-
-        if (img && img.complete && img.naturalWidth) {
-          ctx.drawImage(img, ob.x, ob.y, ob.width, ob.height);
-        } else {
-          ctx.fillStyle = 'rgba(0,0,0,0.05)';
-          ctx.fillRect(ob.x, ob.y, ob.width, ob.height);
-        }
-      }
-
-      // игрок
-      if (playerImg.complete && playerImg.naturalWidth) {
-        if (!sprite.frameW || !sprite.frameH) {
-          sprite.frameW = playerImg.naturalWidth / sprite.cols;
-          sprite.frameH = playerImg.naturalHeight / sprite.rows;
-        }
-
-        const row = player.dir;
-        const col = player.frame;
-
-        const sx = col * sprite.frameW;
-        const sy = row * sprite.frameH;
-
-        const px = player.x - player.size / 2;
-        const py = player.y - player.size / 2;
-
+    function drawPlayer() {
+      if (playerImg.complete && playerImg.naturalWidth > 0) {
+        const sx = player.frame * FRAME_W;
+        const sy = player.dir * FRAME_H;
+        const dx = player.x - player.size / 2;
+        const dy = player.y - player.size / 2;
         ctx.drawImage(
           playerImg,
-          sx, sy, sprite.frameW, sprite.frameH,
-          px, py, player.size, player.size
+          sx,
+          sy,
+          FRAME_W,
+          FRAME_H,
+          dx,
+          dy,
+          player.size,
+          player.size
         );
       } else {
-        ctx.fillStyle = '#ffd54f';
+        ctx.fillStyle = "#ffd54f";
         ctx.beginPath();
         ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
         ctx.fill();
       }
-
-      ctx.restore();
     }
 
-    createObstacles();
-    resetPlayer();
-    spawnBottles();
+    function drawBottles() {
+      bottles.forEach((b) => {
+        if (bottleImg.complete && bottleImg.naturalWidth > 0) {
+          const size = bottleRadius * 2;
+          ctx.drawImage(
+            bottleImg,
+            b.x - size / 2,
+            b.y - size / 2,
+            size,
+            size
+          );
+        } else {
+          ctx.fillStyle = "#b3e5fc";
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, bottleRadius, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+    }
+
+    function draw(dt) {
+      drawBackground();
+      drawBottles();
+      drawPlayer();
+    }
 
     function loop(ts) {
       if (!lastTs) lastTs = ts;
@@ -640,10 +463,11 @@
       lastTs = ts;
 
       update(dt);
-      draw();
+      draw(dt);
 
       requestAnimationFrame(loop);
     }
+
     requestAnimationFrame(loop);
   </script>
 </body>
